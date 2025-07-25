@@ -1,0 +1,104 @@
+"use client";
+
+import Image from "next/image";
+
+import { Button } from "@/app/components/ui/button";
+import Footer from "@/app/components/ui/footer"
+import { motion } from "framer-motion";
+import Link from "next/link";
+import Header from "@/app/components/ui/header"; 
+
+
+export default function Home() {
+  return (
+    <main className="min-h-screen bg-white text-gray-900 px-6 md:px-16 lg:px-32 pb-20">
+      {/* Header */}
+     <Header/>
+   
+
+      {/* Hero Section */}
+      <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden rounded-3xl shadow-2xl mb-24">
+        <Image
+          src="https://blogassets.leverageedu.com/blog/wp-content/uploads/2019/11/23173342/BSC-Computer-Science-vs-BCA-768x480.png"
+          alt="Hero background"
+          fill
+          className="object-cover object-center brightness-75"
+        />
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1 }}
+          className="relative z-10 bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-8 md:p-16 text-center max-w-3xl text-white"
+        >
+          <h1 className="text-4xl md:text-4xl font-semibold mb-4 leading-tight">
+            Chia Sẻ <span className="text-purple-300">Câu Chuyện</span> Của Bạn
+          </h1>
+          <p className="text-sm md:text-base font-semibold text-gray-200 mb-6">
+            Viết ra những điều đáng nhớ, lan tỏa giá trị đến cộng đồng.
+          </p>
+          <Link href="/createpost">
+          <Button className=" font-semibold bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-full cursor-pointer">
+            Bắt đầu viết
+          </Button></Link>
+        </motion.div>
+      </section>
+
+      {/* Chủ đề nổi bật */}
+      <section className="my-24">
+        <h3 className="text-center text-3xl font-semibold text-blue-600 mb-12">
+          Khám Phá Các Chủ Đề Nổi Bật
+        </h3>
+        <div className="grid md:grid-cols-3 gap-8">
+          {[
+            {
+              title: "Học Tập & Phát Triển",
+              desc: "Nâng cao kiến thức và kỹ năng cá nhân.",
+              img: "https://cdn.pixabay.com/photo/2015/07/17/22/43/student-849822_1280.jpg",
+            },
+            {
+              title: "Công Nghệ Mới",
+              desc: "Khám phá xu hướng công nghệ hiện đại.",
+              img: "https://cdn.pixabay.com/photo/2016/03/26/13/09/workspace-1280538_1280.jpg",
+            },
+            {
+              title: "Cảm Hứng Cuộc Sống",
+              desc: "Chia sẻ câu chuyện truyền cảm hứng mỗi ngày.",
+              img: "https://www.datarails.com/wp-content/uploads/2023/08/shutterstock_2278853861-1536x841.jpg",
+            },
+          ].map((item, idx) => (
+            <motion.div
+              key={idx}
+              whileHover={{ scale: 1.03 }}
+              transition={{ duration: 0.3 }}
+              className="rounded-xl overflow-hidden shadow-lg bg-white flex flex-col justify-between"
+            >
+              <Image
+                src={item.img}
+                alt={item.title}
+                width={500}
+                height={300}
+                className="w-full h-48 object-cover"
+              />
+              <div className="p-4 flex flex-col justify-between h-full">
+                <div>
+                  <h4 className="font-semibold text-lg mb-2">{item.title}</h4>
+                  <p className="text-sm  text-gray-600">{item.desc}</p>
+                </div>
+                <div className="text-right mt-4">
+                  <Link
+                    href="/detail"
+                    className="text-xs font-semibold  text-blue-600 hover:underline"
+                  >
+                    Đọc thêm
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+<Footer/>
+    
+    </main>
+  );
+}
