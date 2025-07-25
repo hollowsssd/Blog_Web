@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,44 +22,56 @@ import lombok.Setter;
 @Entity
 @Table(name = "posts")
 public class Posts {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
+    // Quan hệ 1-nhiều: 1 user có nhiều post
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
+
     @Column(name = "image_url")
     private String imageUrl;
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+
+    // tự động set khi tạo
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    // tự động update khi save
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-    @Column(name = "is_published")
-    private Boolean isPublished;
-    
 
+    @Column(name = "is_published", nullable = false)
+    private Boolean isPublished = false;
+
+    // ManyToMany với tags
     @ManyToMany
     @JoinTable(
-            name = "post_tags",
-            joinColumns = @JoinColumn(name = "post_id"),
-            inverseJoinColumns = @JoinColumn(name = "tag_id")
+        name = "post_tags", 
+        joinColumns = @JoinColumn(name = "post_id"), 
+        inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
     private Set<Tags> tags;
 
+    // lifecycle callback để tự động update updatedAt
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 
-    public Posts(){}
+    public Posts() {
+    }
 
-    public Posts(String content, LocalDateTime createdAt, String imageUrl, Boolean isPublished, Set<Tags> tags, LocalDateTime updatedAt, Users user) {
+    public Posts(String content, String imageUrl, Boolean isPublished, Set<Tags> tags, Users user) {
         this.content = content;
-        this.createdAt = createdAt;
         this.imageUrl = imageUrl;
         this.isPublished = isPublished;
         this.tags = tags;
-        this.updatedAt = updatedAt;
         this.user = user;
     }
-
 }

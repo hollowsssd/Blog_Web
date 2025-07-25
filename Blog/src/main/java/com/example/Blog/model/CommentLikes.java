@@ -16,22 +16,22 @@ import lombok.Setter;
 @Table(name = "comment_likes")
 @IdClass(CommentLikesId.class)
 public class CommentLikes {
+
     @Id
+    @Column(name = "user_id", nullable = false)
     private Integer userId;
 
     @Id
+    @Column(name = "comment_id", nullable = false)
     private Integer commentId;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     public CommentLikes() {}
 
-    public CommentLikes(Integer userId, Integer commentId, LocalDateTime createdAt) {
+    public CommentLikes(Integer userId, Integer commentId) {
         this.userId = userId;
         this.commentId = commentId;
-        this.createdAt = createdAt;
     }
-
-
 }

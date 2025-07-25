@@ -23,26 +23,25 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
-    @ManyToOne
-    @JoinColumn(name = "post_id")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "post_id", nullable = false)
     private Posts post;
 
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
 
-    public Comment(String content, LocalDateTime createdAt, Integer id, Posts post, Users user) {
+    public Comment() {}
+
+    public Comment(String content, Users user, Posts post) {
         this.content = content;
-        this.createdAt = createdAt;
-        this.id = id;
-        this.post = post;
         this.user = user;
+        this.post = post;
     }
-    public Comment(){}
-
 }
