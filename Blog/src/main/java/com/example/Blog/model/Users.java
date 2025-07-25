@@ -14,49 +14,44 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name="users")
+@Table(name = "users")
 public class Users {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-    @Column(nullable=false, unique=true)
-    private String email;
-    @Column(nullable=false)
-    private String password;
-    
-    private Boolean admin;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Integer id;
 
-    @Column(name="created_at")
-    private LocalDateTime createdAt;
-    
-    // @Column(name="banned")
-    // private Boolean banned;
-    
-    // @Column(name="avatar")
-    // private String avatarUrl;
+  @Column(nullable = false, unique = true)
+  private String email;
 
+  @Column(nullable = false)
+  private String password;
 
+  @Column (name="name")
+  private String name;
 
-    
-      public Users(){}
+  @Column(nullable = false)
+  private Boolean admin = false; // mặc định là user
 
-    public Users(String password, Boolean admin, LocalDateTime createdAt, String email) {
-        this.password = password;
-        this.admin = admin;
-        // this.avatarUrl = avatarUrl;
-        // this.banned = banned;
-        this.createdAt = createdAt;
-        this.email = email;
-    }
+  @Column(name = "created_at", nullable = false, updatable = false)
+  private LocalDateTime createdAt = LocalDateTime.now(); // tự set khi tạo
 
-    
+  @Column(name = "banned", nullable = false)
+  private Boolean banned = false; 
 
+  @Column(name = "avatar")
+  private String avatarUrl;
 
-    
+  public Users() {
+  }
 
-
-
-
+  public Users(Boolean admin, String avatarUrl, Boolean banned, String email,
+      String password) {
+    this.admin = admin;
+    this.avatarUrl = avatarUrl;
+    this.banned = banned;
+    this.email = email;
+    this.password = password;
+  }
 
 }

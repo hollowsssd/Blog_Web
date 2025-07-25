@@ -10,12 +10,13 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "post_likes")
 @IdClass(PostLikesId.class)
 
 public class PostLikes {
-    @Getter@Setter
     @Id
     private Integer userId;
 

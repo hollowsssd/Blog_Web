@@ -1,36 +1,39 @@
 'use client';
 
+import axios from "axios";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FaCheckCircle } from "react-icons/fa";
-import { useRouter } from "next/navigation";
 
 export default function AddUserPage() {
-  const router = useRouter(); // ✅ cần khởi tạo router
+  const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
-    name: "",
     password: "",
-    role: "User",
+    admin: false,
+    created_at: "null",
+    avatar: "null",
+    banned: "null",
   });
 
   const [message, setMessage] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const target = e.target as HTMLInputElement; // ép kiểu rõ ràng
+    const { name, value, type, checked } = target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
+
 
   const validateEmail = (email: string) => /\S+@\S+\.\S+/.test(email);
   const validatePassword = (password: string) => password.length >= 6;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!validateEmail(formData.email)) {
-      setMessage("Email không hợp lệ.");
-      setShowSuccess(false);
-      return;
-    }
 
     if (!validatePassword(formData.password)) {
       setMessage("Mật khẩu phải có ít nhất 6 ký tự.");
@@ -38,15 +41,21 @@ export default function AddUserPage() {
       return;
     }
 
-    // ✅ Xử lý thành công
-    setMessage("Người dùng đã được thêm thành công!");
-    setShowSuccess(true);
-    console.log("Dữ liệu gửi đi:", formData);
+    try {
 
-    // ✅ Sau 1.2s chuyển hướng
-    setTimeout(() => {
-      router.push("/list/users");
-    }, 800);
+
+      console.log("!!!", formData);
+
+      const res = await axios.post(`http://localhost:8080/api/user/add`,
+        formData, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      console.log("success", res);
+    } catch (error) {
+      setMessage("Lỗi kết nối server.");
+      setShowSuccess(false);
+    }
   };
 
   return (
@@ -58,8 +67,12 @@ export default function AddUserPage() {
         <h2 className="text-2xl font-bold text-center text-gray-800">Thêm Người Dùng</h2>
 
         {message && (
-          <div className={`flex items-center gap-2 text-sm px-4 py-2 rounded-lg transition-all duration-300
-            ${showSuccess ? "bg-green-50 text-green-700 border border-green-200" : "text-red-500 bg-red-50 border border-red-200"}`}>
+          <div
+            className={`flex items-center gap-2 text-sm px-4 py-2 rounded-lg transition-all duration-300 ${showSuccess
+                ? "bg-green-50 text-green-700 border border-green-200"
+                : "text-red-500 bg-red-50 border border-red-200"
+              }`}
+          >
             {showSuccess && <FaCheckCircle className="text-green-500 animate-pulse" />}
             {message}
           </div>
@@ -84,25 +97,6 @@ export default function AddUserPage() {
           </label>
         </div>
 
-        {/* Name */}
-        <div className="relative">
-          <input
-            type="text"
-            name="name"
-            required
-            value={formData.name}
-            onChange={handleChange}
-            placeholder=" "
-            className="peer w-full px-4 pt-6 pb-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <label
-            htmlFor="name"
-            className="absolute left-4 top-2 text-gray-500 text-xs peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-focus:top-2 peer-focus:text-xs transition-all"
-          >
-            Họ và tên
-          </label>
-        </div>
-
         {/* Password */}
         <div className="relative">
           <input
@@ -122,19 +116,16 @@ export default function AddUserPage() {
           </label>
         </div>
 
-        {/* Role */}
-        <div>
-          <label className="text-sm text-gray-600 mb-1 block">Vai trò</label>
-          <select
-            name="role"
-            value={formData.role}
+        {/* Admin Checkbox */}
+        <label className="flex items-center gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            name="admin"
+            checked={formData.admin}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="User">User</option>
-            <option value="Admin">Admin</option>
-          </select>
-        </div>
+          />
+          Là Admin
+        </label>
 
         <button
           type="submit"
