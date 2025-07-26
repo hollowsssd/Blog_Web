@@ -27,7 +27,7 @@ public class Users {
   @Column(nullable = false)
   private String password;
 
-  @Column (name="name")
+  @Column(name = "name")
   private String name;
 
   @Column(nullable = false)
@@ -45,14 +45,17 @@ public class Users {
   public Users() {
   }
 
-  public Users(Boolean admin, String avatarUrl, Boolean banned, String email,
-      String password, String name) {
-    this.admin = admin;
+  public Users(String avatarUrl, String email, String name, String password) {
+    this(avatarUrl, email, name, password, false, false); // gọi constructor đầy đủ
+  }
+
+  public Users(String avatarUrl, String email, String name, String password, Boolean admin, Boolean banned) {
     this.avatarUrl = avatarUrl;
-    this.banned = banned;
     this.email = email;
-    this.password = password;
     this.name = name;
+    this.password = password;
+    this.admin = admin != null ? admin : false;
+    this.banned = banned != null ? banned : false;
   }
 
 }
