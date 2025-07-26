@@ -37,7 +37,7 @@ public class Users {
   private LocalDateTime createdAt = LocalDateTime.now(); // tự set khi tạo
 
   @Column(name = "banned", nullable = false)
-  private Boolean banned = false; 
+  private Boolean banned = false;
 
   @Column(name = "avatar")
   private String avatarUrl;
@@ -46,12 +46,13 @@ public class Users {
   }
 
   public Users(Boolean admin, String avatarUrl, Boolean banned, String email,
-      String password) {
+      String password, String name) {
     this.admin = admin;
     this.avatarUrl = avatarUrl;
     this.banned = banned;
     this.email = email;
     this.password = password;
+    this.name = name;
   }
 
 }
