@@ -11,9 +11,8 @@ export default function AddUserPage() {
     email: "",
     password: "",
     admin: false,
-    created_at: "null",
     avatar: "null",
-    banned: "null",
+    banned: "false",
   });
 
   const [message, setMessage] = useState("");
