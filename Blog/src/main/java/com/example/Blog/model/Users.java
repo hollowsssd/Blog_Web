@@ -27,7 +27,7 @@ public class Users {
   @Column(nullable = false)
   private String password;
 
-  @Column (name="name")
+  @Column(name = "name")
   private String name;
 
   @Column(nullable = false)
@@ -37,7 +37,7 @@ public class Users {
   private LocalDateTime createdAt = LocalDateTime.now(); // tự set khi tạo
 
   @Column(name = "banned", nullable = false)
-  private Boolean banned = false; 
+  private Boolean banned = false;
 
   @Column(name = "avatar")
   private String avatarUrl;
@@ -45,13 +45,17 @@ public class Users {
   public Users() {
   }
 
-  public Users(Boolean admin, String avatarUrl, Boolean banned, String email,
-      String password) {
-    this.admin = admin;
+  public Users(String avatarUrl, String email, String name, String password) {
+    this(avatarUrl, email, name, password, false, false); // gọi constructor đầy đủ
+  }
+
+  public Users(String avatarUrl, String email, String name, String password, Boolean admin, Boolean banned) {
     this.avatarUrl = avatarUrl;
-    this.banned = banned;
     this.email = email;
+    this.name = name;
     this.password = password;
+    this.admin = admin != null ? admin : false;
+    this.banned = banned != null ? banned : false;
   }
 
 }

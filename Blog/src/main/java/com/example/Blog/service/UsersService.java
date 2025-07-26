@@ -33,6 +33,10 @@ public class UsersService {
         return userRepository.save(users);
     }
 
+    public  List<Users> searchUsers(String keyword) {
+        return userRepository.findByNameContaining(keyword);
+    }
+
     public void deleteUsers(int id) {
         userRepository.deleteById(id);
     }
