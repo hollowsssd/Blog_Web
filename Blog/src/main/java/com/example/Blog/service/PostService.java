@@ -13,23 +13,32 @@ import com.example.Blog.repository.PostRepository;
 public class PostService {
 
     @Autowired
+    private PostRepository postsRepository;
 
-    private PostRepository postRepository;
-
-    public List<Posts> getAllPost() {
-        return postRepository.findAll();
+    public List<Posts> getAllPosts() {
+        return postsRepository.findAll();
     }
 
-    public Optional<Posts> getPostsById(int id) {
-        return postRepository.findById(id);
+    public Optional<Posts> getPostById(Integer id) {
+        return postsRepository.findById(id);
     }
 
-    public Posts savePosts(Posts posts) {
-        return postRepository.save(posts);
+    public List<Posts> getPostsByUserId(Integer userId) {
+        return postsRepository.findByUserId(userId);
     }
 
-    public void deleteUsers(int id) {
-        postRepository.deleteById(id);
+    // Tìm post theo tag id
+    public List<Posts> getPostsByTagId(Integer tagId) {
+        return postsRepository.findByTags_Id(tagId);
+    }
+
+
+    public Posts savePost(Posts post) {
+        return postsRepository.save(post);
+    }
+
+    public void deletePost(Integer id) {
+        postsRepository.deleteById(id);
     }
 
 }

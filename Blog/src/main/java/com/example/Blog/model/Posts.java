@@ -58,7 +58,6 @@ public class Posts {
     )
     private Set<Tags> tags;
 
-    // lifecycle callback để tự động update updatedAt
     @PreUpdate
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();

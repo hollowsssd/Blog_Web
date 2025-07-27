@@ -3,15 +3,14 @@ package com.example.Blog.service;
 import java.util.List;
 import java.util.Optional;
 
-import com.example.Blog.model.CommentLikes;
-import com.example.Blog.model.CommentLikesId;
-import com.example.Blog.model.PostLikesId;
-import com.example.Blog.repository.CommentLikesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.Blog.model.PostLikes;
-import com.example.Blog.repository.PostLikesRepository;
+import com.example.Blog.model.CommentLikes;
+import com.example.Blog.model.CommentLikesId;
+import com.example.Blog.repository.CommentLikesRepository;
+
+
 
 @Service
 public class CommentLikesService {
@@ -29,8 +28,8 @@ public class CommentLikesService {
         return commentLikesRepository.findById(id);
     }
 
-    public CommentLikes saveCommentLikes(CommentLikes commentlikes) {
-        return commentLikesRepository.save(commentlikes);
+    public CommentLikes saveCommentLikes(CommentLikes commentLikes) {
+        return commentLikesRepository.save(commentLikes);
     }
 
     public void deleteCommentLikes(int commentId, int userId) {
