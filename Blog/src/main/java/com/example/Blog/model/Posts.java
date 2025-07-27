@@ -56,7 +56,7 @@ public class Posts {
         joinColumns = @JoinColumn(name = "post_id"), 
         inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
-    private Set<Tags> tags;
+    private Set<PostTags> tags;
 
     @PreUpdate
     public void preUpdate() {
@@ -66,7 +66,7 @@ public class Posts {
     public Posts() {
     }
 
-    public Posts(String content, String imageUrl, Boolean isPublished, Set<Tags> tags, Users user) {
+    public Posts(String content, String imageUrl, Boolean isPublished, Set<PostTags> tags, Users user) {
         this.content = content;
         this.imageUrl = imageUrl;
         this.isPublished = isPublished;
