@@ -16,7 +16,7 @@ import com.example.Blog.model.Posts;
 import com.example.Blog.service.PostService;
 
 @RestController // đổi sang RestController để trả JSON
-@RequestMapping("/posts")
+@RequestMapping("/post")
 public class PostController {
 
     @Autowired

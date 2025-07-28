@@ -3,6 +3,7 @@ package com.example.Blog.model;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -32,6 +33,9 @@ public class Posts {
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
+    @Column(name = "title", nullable = false)
+    private String title;
+
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
@@ -51,12 +55,13 @@ public class Posts {
 
     // ManyToMany với tags
     @ManyToMany
+    @JsonManagedReference
     @JoinTable(
-        name = "post_tags", 
-        joinColumns = @JoinColumn(name = "post_id"), 
-        inverseJoinColumns = @JoinColumn(name = "tag_id")
+        name = "post_tags",
+        joinColumns = @JoinColumn(name = "post_id"),
+        inverseJoinColumns = @JoinColumn(name = "tags_id")
     )
-    private Set<PostTags> tags;
+    private Set<Tags> tags;
 
     @PreUpdate
     public void preUpdate() {
@@ -66,7 +71,8 @@ public class Posts {
     public Posts() {
     }
 
-    public Posts(String content, String imageUrl, Boolean isPublished, Set<PostTags> tags, Users user) {
+    public Posts(String title, String content, String imageUrl, Boolean isPublished, Set<Tags> tags, Users user) {
+        this.title = title;
         this.content = content;
         this.imageUrl = imageUrl;
         this.isPublished = isPublished;

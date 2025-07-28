@@ -19,16 +19,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .cors(Customizer.withDefaults()) // bật CORS
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                // API public
-                .requestMatchers("/api/user/add", "/api/auth/login").permitAll()
-                // các API còn lại bắt buộc auth
-                .anyRequest().authenticated()
-            )
-            .httpBasic(Customizer.withDefaults())
-            .formLogin(form -> form.disable());
+                .cors(Customizer.withDefaults()) // Enable CORS
+                .csrf(csrf -> csrf.disable()) // Disable CSRF
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll() // Permit all requests
+                )
+                .httpBasic(Customizer.withDefaults()) // Optional
+                .formLogin(form -> form.disable()); // Disable form login
 
         return http.build();
     }
