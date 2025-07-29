@@ -15,13 +15,15 @@ public class UsersService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     public List<Users> getAllUsers() {
         return userRepository.findAll();
     }
 
-    public Optional<Users> getUsersById(int id) {
+    public Optional<Users> getUsersById(Integer id) {
         return userRepository.findById(id);
     }
 
@@ -29,31 +31,42 @@ public class UsersService {
         return userRepository.findByEmail(email);
     }
 
-    public Users saveUsers(Users users) {
-        return userRepository.save(users);
-    }
-
-    public  List<Users> searchUsers(String keyword) {
-        return userRepository.findByNameContaining(keyword);
-    }
-
-    public void deleteUsers(int id) {
-        userRepository.deleteById(id);
-    }
-
-    // ✅ Phương thức kiểm tra email tồn tại
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
 
-    public Users register(Users users) {
-        if (userRepository.existsByEmail(users.getEmail())) {
-            throw new RuntimeException("Email đã được sử dụng.");
-        }
-
-        String encodedPassword = passwordEncoder.encode(users.getPassword());
-        users.setPassword(encodedPassword);
-
+    public Users saveUsers(Users users) {
         return userRepository.save(users);
     }
+
+    public void deleteUsers(Integer id) {
+        userRepository.deleteById(id);
+    }
+
+    public Users register(String name, String email, String rawPassword) {
+        String encodedPassword = passwordEncoder.encode(rawPassword);
+        Users user = new Users();
+        user.setName(name);
+        user.setEmail(email);
+        user.setPassword(encodedPassword);
+        return userRepository.save(user);
+    }
+
+    public boolean existsById(Integer id) {
+        return userRepository.existsById(id);
+    }
+
+    public void deleteUserById(Integer id) {
+        userRepository.deleteById(id);
+    }
+
+    public Users getUserById(Integer id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với ID: " + id));
+    }
+
+    public List<Users> searchUsers(String keyword) {
+        return userRepository.findByNameContaining(keyword);
+    }
+
 }

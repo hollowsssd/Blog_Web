@@ -16,7 +16,7 @@ import com.example.Blog.service.UsersService;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*") // Cho phép từ frontend gọi đến
+@CrossOrigin(origins = "*") // Cho phép gọi từ frontend
 public class AuthController {
 
     @Autowired
@@ -25,6 +25,7 @@ public class AuthController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    // Đăng nhập
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> payload) {
         String email = payload.get("email");
@@ -35,15 +36,37 @@ public class AuthController {
             return ResponseEntity.badRequest().body(Map.of("message", "Email hoặc mật khẩu không đúng!"));
         }
 
-        // ⚠️ Giả token - bạn có thể thay bằng JWT sau này
         return ResponseEntity.ok(Map.of(
                 "message", "Đăng nhập thành công!",
                 "user", Map.of(
                         "id", user.getId(),
                         "name", user.getName(),
-                        "email", user.getEmail()
+                        "email", user.getEmail(),
+                        "admin", user.getAdmin()
                 ),
-                "accessToken", "fake-token-123"
+                "accessToken", "fake-token-123" // sau có thể dùng JWT
+        ));
+    }
+
+    
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody Map<String, String> payload) {
+        String name = payload.get("name");
+        String email = payload.get("email");
+        String password = payload.get("password");
+
+        if (usersService.existsByEmail(email)) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Email đã được sử dụng."));
+        }
+
+        Users newUser = usersService.register(name, email, password);
+        return ResponseEntity.ok(Map.of(
+                "message", "Đăng ký thành công!",
+                "user", Map.of(
+                        "id", newUser.getId(),
+                        "name", newUser.getName(),
+                        "email", newUser.getEmail()     
+                )
         ));
     }
 }

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -53,14 +54,17 @@ public class Posts {
     @Column(name = "is_published", nullable = false)
     private Boolean isPublished = false;
 
+    @Column(name = "title", nullable = false)
+    private String title;
+
+    @Column(name = "description", nullable = false)
+    private String description;
+
     // ManyToMany với tags
     @ManyToMany
     @JsonManagedReference
-    @JoinTable(
-        name = "post_tags",
-        joinColumns = @JoinColumn(name = "post_id"),
-        inverseJoinColumns = @JoinColumn(name = "tags_id")
-    )
+    @JoinTable(name = "post_tags", // bảng join
+            joinColumns = @JoinColumn(name = "post_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
     private Set<Tags> tags;
 
     @PreUpdate
@@ -71,12 +75,15 @@ public class Posts {
     public Posts() {
     }
 
-    public Posts(String title, String content, String imageUrl, Boolean isPublished, Set<Tags> tags, Users user) {
-        this.title = title;
+    public Posts(String content, String description, String imageUrl, Set<Tags> tags, String title, Users user,
+            Boolean isPublished) {
         this.content = content;
+        this.description = description;
         this.imageUrl = imageUrl;
-        this.isPublished = isPublished;
         this.tags = tags;
+        this.title = title;
         this.user = user;
+        this.isPublished = isPublished;
     }
+
 }

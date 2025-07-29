@@ -1,12 +1,12 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import axios from "axios";
 import type { AxiosError } from "axios";
+import axios from "axios";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css"; // đừng quên import CSS của toastify
+import "react-toastify/dist/ReactToastify.css";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,16 +25,24 @@ export default function LoginPage() {
       });
 
       const data = res.data;
+      console.log("✅ Dữ liệu user:", data.user);
+      console.log("✅ Kiểu dữ liệu admin:", typeof data.user.admin);
+
       localStorage.setItem("user", JSON.stringify(data.user));
 
       toast.success("Đăng nhập thành công!", {
         position: "top-right",
-        autoClose: 500,
+        autoClose: 1000,
       });
 
-      setTimeout(() => {
+      // Kiểm tra quyền admin
+      if (Number(data.user.admin) === 1) {
+        console.log("✅ Là admin → chuyển đến /admin");
+        router.push("/admin");
+      } else {
+        console.log("❌ Không phải admin → chuyển đến /");
         router.push("/");
-      }, 1500);
+      }
     } catch (err: unknown) {
       const error = err as AxiosError<{ message: string }>;
 
@@ -96,7 +104,7 @@ export default function LoginPage() {
                   id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="email@example.com"
+                  placeholder="email"
                   className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
                   required
                 />
@@ -114,7 +122,7 @@ export default function LoginPage() {
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="password"
                   className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
                   required
                 />
@@ -157,7 +165,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* 👇 Hiển thị toast tại đây */}
+      {/* 👇 Toast hiển thị ở đây */}
       <ToastContainer />
     </main>
   );
