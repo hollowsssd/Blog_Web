@@ -39,7 +39,7 @@ import com.example.Blog.service.TagService;
 import com.example.Blog.service.UsersService;
 
 @RestController // đổi sang RestController để trả JSON
-@RequestMapping("/posts")
+@RequestMapping("/post")
 public class PostController {
 
     @Autowired

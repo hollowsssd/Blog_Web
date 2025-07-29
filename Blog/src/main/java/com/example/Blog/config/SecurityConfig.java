@@ -18,10 +18,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Tắt CSRF nếu dùng API
+                .cors(Customizer.withDefaults()) // Enable CORS
+                .csrf(csrf -> csrf.disable()) // Disable CSRF
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll() // Cho phép tất cả request không cần đăng nhập
-                );
+                        .anyRequest().permitAll() // Permit all requests
+                )
+                .httpBasic(Customizer.withDefaults()) // Optional
+                .formLogin(form -> form.disable()); // Disable form login
 
         return http.build();
     }

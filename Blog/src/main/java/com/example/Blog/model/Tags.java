@@ -19,7 +19,7 @@ import lombok.Setter;
 @Table(name="tags")
 public class Tags {
 
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -31,7 +31,7 @@ public class Tags {
     }
     public Tags(){}
 
-    
+
     @ManyToMany(mappedBy = "tags")
     @JsonBackReference
     private Set<Posts> posts;

@@ -32,4 +32,8 @@ public class CommentService {
         commentRepository.deleteById(id);
     }
 
+    public List<Comment> getCommentsByPostId(Integer postId) {
+        return commentRepository.findByPostId(postId);
+    }
+
 }

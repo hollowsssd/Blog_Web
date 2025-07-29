@@ -34,6 +34,9 @@ public class Posts {
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
+    @Column(name = "title", nullable = false)
+    private String title;
+
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
