@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
 import axios, { AxiosError } from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 
 import { toast, ToastContainer } from "react-toastify";
@@ -33,7 +33,7 @@ export default function RegisterPage() {
     e.preventDefault();
     try {
       const res = await axios.post(
-        `http://localhost:8080/api/user/add`,
+        `http://localhost:8080/api/auth/register`,
         formData,
         {
           headers: {

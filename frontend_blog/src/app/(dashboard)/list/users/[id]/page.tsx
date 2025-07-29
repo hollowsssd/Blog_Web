@@ -1,228 +1,200 @@
-"use client"
-import { useParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import axios from "axios";
+  'use client';
 
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+  import axios, { AxiosError } from 'axios';
+import { useRouter } from 'next/navigation';
+import { use, useEffect, useState } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
+  interface FormData {
+    id?: string;
+    email: string;
+    name: string;
+    password: string;
+    admin: boolean;
+    avatar: string | null;
+    banned: boolean;
+  }
 
-export default function UsersDetail() {
-  const router=useRouter();
-  const { id } = useParams();
+  export default function EditUserPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id: userId } = use(params); // ✅ unwrap Promise params
+    const router = useRouter();
 
-  useEffect(() => {
-    if (id) {
-      fetchUser();
-    }
-
-  }, [id]);
- 
-
-
-  const [UserData, SetUserData] = useState({
-    name: "",
-    email: "",
-    address: "",
-    phone: "",
-    password: "",
-    is_admin: "",
-  });
-
-
-  const fetchUser = async () => {
-    try {
-      const result = await axios.get(`http://127.0.0.1:8000/api/users/${id}`);
-
-      console.log("pulldata 1", result.data.Result);
-      // SetUserData(result.data.Result);
-
-      if (result.data.Result) {
-        SetUserData({
-          ...UserData,
-          name: result.data.Result.name || "",
-          email: result.data.Result.email || "",
-          address: result.data.Result.address || "",
-          phone: result.data.Result.phone || "",
-          // password: "",
-          is_admin: result.data.Result.is_admin?.toString() || "0", // Chuyển số thành chuỗi
-        });
-        console.log("pulldata 2", result.data.Result);
-      }
-
-
-    } catch (error) {
-      console.log("something went wrong", error);
-
-    }
-  };
-  const changeUserFieldHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
-    SetUserData({
-      ...UserData,
-      [e.target.name]: e.target.value
+    const [formData, setFormData] = useState<FormData>({
+      email: '',
+      name: '',
+      password: '',
+      admin: false,
+      avatar: null,
+      banned: false,
     });
-  };
 
+    // Fetch dữ liệu người dùng hiện tại
+    useEffect(() => {
+      const fetchUser = async () => {
+        try {
+          const res = await axios.get(`http://localhost:8080/api/user/${userId}`);
+          setFormData(res.data);
+        } catch (err) {
+          toast.error('Không thể tải dữ liệu người dùng', { position: 'top-right' });
+        }
+      };
+      fetchUser();
+    }, [userId]);
 
-  const onSubmitChange = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();// chặn reload trang
-    try {
-      const formData = new FormData();
-      formData.append("name", UserData.name);
-      formData.append("email", UserData.email);
-      if (UserData.password !==""){
-        formData.append("password",UserData.password)
-      }else{
-        formData.append("password", "undefined");
+    const handleChange = (
+      e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    ) => {
+      const target = e.target;
+      const { name, value, type } = target;
+      const checked = (target as HTMLInputElement).checked;
+
+      setFormData((prev) => ({
+        ...prev,
+        [name]:
+          type === 'checkbox'
+            ? checked
+            : name === 'banned'
+            ? value === 'true'
+            : name === 'admin'
+            ? value === '1' || value === 'true'
+            : value,
+      }));
+    };
+
+    const validateEmail = (email: string) => /\S+@\S+\.\S+/.test(email);
+    const validatePassword = (password: string) => password === '' || password.length >= 6;
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+
+      if (!validateEmail(formData.email)) {
+        toast.error('Email không hợp lệ', { position: 'top-right' });
+        return;
       }
-      
-      formData.append("phone", UserData.phone || "");
-      formData.append("address", UserData.address || "");
-      formData.append("is_admin", UserData.is_admin);
 
+      if (!validatePassword(formData.password)) {
+        toast.error('Mật khẩu phải có ít nhất 6 ký tự hoặc để trống nếu không đổi', {
+          position: 'top-right',
+        });
+        return;
+      }
 
+      try {
+        await axios.put(
+          `http://localhost:8080/api/user/update/${userId}`,
+          formData,
+          {
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
 
-      console.log("Data:", Array.from(formData.entries()));
+        toast.success('Cập nhật người dùng thành công!', { position: 'top-right' });
 
-      const res = await axios.post(`http://127.0.0.1:8000/api/usersUpdate/${id}`,
-        formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      // alert("Update successfully");
-      console.log("sss", res);
+        setTimeout(() => {
+          router.push('/list/users');
+        }, 1500);
+      } catch (err) {
+        const error = err as AxiosError<{ message?: string }>;
+        const errorMessage = error.response?.data?.message;
 
-      toast.success("user updated!", { position: "top-right" });
+        toast.error(errorMessage || 'Lỗi khi cập nhật người dùng!', {
+          position: 'top-right',
+        });
+      }
+    };
 
-      setTimeout(() => {
-      router.push("/list/users");
-    }, 1000);
+    return (
+      <>
+        <main className="min-h-screen bg-gradient-to-br from-[#f7fafd] to-[#eef4fa] flex items-center justify-center px-4">
+          <form
+            onSubmit={handleSubmit}
+            className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl space-y-6 animate-fade-in"
+          >
+            <h2 className="text-2xl font-bold text-center text-gray-800">
+              Chỉnh sửa Người Dùng
+            </h2>
 
-    } catch (error) {
-      console.log("something went wrong", error);
-    }
+            {/* Email */}
+            <div className="relative">
+              <input
+                type="email"
+                name="email"
+                required
+                value={formData.email}
+                onChange={handleChange}
+                placeholder=" "
+                className="peer w-full px-4 pt-6 pb-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <label
+                htmlFor="email"
+                className="absolute left-4 top-2 text-gray-500 text-xs peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-focus:top-2 peer-focus:text-xs transition-all"
+              >
+                Email
+              </label>
+            </div>
 
-  }
+            {/* Name */}
+            <div className="relative">
+              <input
+                type="text"
+                name="name"
+                required
+                value={formData.name}
+                onChange={handleChange}
+                placeholder=" "
+                className="peer w-full px-4 pt-6 pb-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <label
+                htmlFor="name"
+                className="absolute left-4 top-2 text-gray-500 text-xs peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-focus:top-2 peer-focus:text-xs transition-all"
+              >
+                Tên người dùng
+              </label>
+            </div>
 
-  const handleDelete = async () => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this user?");
-    if (!confirmDelete) return;
+            {/* Password */}
+            <div className="relative">
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder=" "
+                className="peer w-full px-4 pt-6 pb-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <label
+                htmlFor="password"
+                className="absolute left-4 top-2 text-gray-500 text-xs peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-focus:top-2 peer-focus:text-xs transition-all"
+              >
+                Mật khẩu mới (bỏ trống nếu không đổi)
+              </label>
+            </div>
 
-    try {
-      await axios.delete(`http://127.0.0.1:8000/api/usersDelete/${id}`);
-      toast.success("user deleted!", { position: "top-right" });
+            {/* Role */}
+            <div>
+              <label className="text-sm text-gray-600 mb-1 block">Vai trò</label>
+              <select
+                name="admin"
+                value={formData.admin ? '1' : '0'}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="0">User</option>
+                <option value="1">Admin</option>
+              </select>
+            </div>
 
-      setTimeout(() => {
-      router.push("/list/users");
-    }, 1000);
-
-    } catch (err) {
-      console.error("Error deleting user:", err);
-    }
-  };
-
-  if (!id || !UserData) {
-    return <div>Loading...</div>; // Xử lý trường hợp không có dữ liệu
-  }
-
-
-  return (
-    <div className="max-w-lg mx-auto bg-white p-10 rounded-xl shadow-md mt-4">
-      <h2 className="text-2xl font-semibold text-center mb-4">Edit User</h2>
-      <form onSubmit={onSubmitChange}>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium">Name</label>
-            <input
-              type="text"
-              name="name"
-              value={UserData.name}
-              onChange={changeUserFieldHandler}
-              className="input input-bordered w-full"
-              placeholder="Enter name"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={UserData.email}
-              onChange={changeUserFieldHandler}
-              className="input input-bordered w-full"
-              placeholder="Enter email"
-              disabled
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Password</label>
-            <input
-              type="password"
-              name="password"
-              value={UserData.password}
-              onChange={changeUserFieldHandler}
-              className="input input-bordered w-full"
-              placeholder="Enter password if you want to change"
-            // required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">Address</label>
-            <input
-              type="text"
-              name="address"
-              value={UserData.address}
-              onChange={changeUserFieldHandler}
-              className="input input-bordered w-full"
-              placeholder="Enter address"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">Phone</label>
-            <input
-              type="tel"
-              name="phone"
-              value={UserData.phone}
-              onChange={changeUserFieldHandler}
-              className="input input-bordered w-full"
-              placeholder="Enter phone"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Role: </label>
-            <select
-              name="is_admin"
-              value={UserData.is_admin}
-              onChange={(e) => SetUserData({ ...UserData, is_admin: e.target.value })}
-              className="select select-bordered w-full"
-              required
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-all shadow-md"
             >
-              <option value="1">Admin</option>
-              <option value="0">User</option>
+              Cập nhật người dùng
+            </button>
+          </form>
+        </main>
 
-            </select>
-          </div>
-
-          <button
-            type="submit"
-            className="btn btn-success w-full mt-4"
-          >
-            Update
-          </button>
-          <h1 className="text-center">Or</h1>
-          <button
-            type="submit"
-            className="btn btn-error w-full mt-4"
-            onClick={handleDelete}
-          >
-            Delete
-          </button>
-        </div>
         <ToastContainer />
-
-      </form>
-    </div>
-  );
-};
+      </>
+    );
+  }

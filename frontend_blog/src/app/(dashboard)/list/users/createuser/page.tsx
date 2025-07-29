@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
@@ -8,30 +8,38 @@ import "react-toastify/dist/ReactToastify.css";
 
 interface FormData {
   email: string;
+  name: string;
   password: string;
   admin: boolean;
-  avatar: string;
-  banned: string;
+  avatar: string | null;
+  banned: boolean;
 }
 
 export default function AddUserPage() {
   const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
     email: "",
+    name: "",
     password: "",
     admin: false,
-    avatar: "null",
-    banned: "false",
+    avatar: null,
+    banned: false,
   });
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const target = e.target as HTMLInputElement;
-    const { name, value, type, checked } = target;
+    const target = e.target as HTMLInputElement | HTMLSelectElement;
+    const { name, value, type } = target;
+    const checked = (target as HTMLInputElement).checked;
+
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: type === "checkbox"
+        ? checked
+        : name === "banned"
+        ? value === "true"
+        : value,
     }));
   };
 
@@ -47,29 +55,40 @@ export default function AddUserPage() {
     }
 
     if (!validatePassword(formData.password)) {
-      toast.error("Mật khẩu phải có ít nhất 6 ký tự", { position: "top-right" });
+      toast.error("Mật khẩu phải có ít nhất 6 ký tự", {
+        position: "top-right",
+      });
+      return;
+    }
+
+    if (!formData.name.trim()) {
+      toast.error("Tên người dùng không được để trống", {
+        position: "top-right",
+      });
       return;
     }
 
     try {
-      const res = await axios.post("http://localhost:8080/api/user/add", formData, {
-        headers: { "Content-Type": "application/json" },
-      });
+      const res = await axios.post(
+        "http://localhost:8080/api/user/add",
+        formData,
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
       toast.success("Thêm người dùng thành công!", { position: "top-right" });
 
       setTimeout(() => {
-        router.push("/users");
+        router.push("/list/users");
       }, 1500);
     } catch (err) {
-      const error = err as AxiosError<{ message: string }>;
+      const error = err as AxiosError<{ message?: string }>;
       const errorMessage = error.response?.data?.message;
 
-      if (errorMessage?.includes("Email already exists")) {
+      if (errorMessage?.includes("Email")) {
         toast.error("Email đã tồn tại!", { position: "top-right" });
-      } 
-        
-      else {
+      } else {
         toast.error(errorMessage || "Lỗi không xác định!", {
           position: "top-right",
         });
@@ -84,7 +103,9 @@ export default function AddUserPage() {
           onSubmit={handleSubmit}
           className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl space-y-6 animate-fade-in"
         >
-          <h2 className="text-2xl font-bold text-center text-gray-800">Thêm Người Dùng</h2>
+          <h2 className="text-2xl font-bold text-center text-gray-800">
+            Thêm Người Dùng
+          </h2>
 
           {/* Email */}
           <div className="relative">
@@ -102,6 +123,25 @@ export default function AddUserPage() {
               className="absolute left-4 top-2 text-gray-500 text-xs peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-focus:top-2 peer-focus:text-xs transition-all"
             >
               Email
+            </label>
+          </div>
+
+          {/* Name */}
+          <div className="relative">
+            <input
+              type="text"
+              name="name"
+              required
+              value={formData.name}
+              onChange={handleChange}
+              placeholder=" "
+              className="peer w-full px-4 pt-6 pb-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <label
+              htmlFor="name"
+              className="absolute left-4 top-2 text-gray-500 text-xs peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-focus:top-2 peer-focus:text-xs transition-all"
+            >
+              Tên người dùng
             </label>
           </div>
 
@@ -125,16 +165,20 @@ export default function AddUserPage() {
           </div>
 
           {/* Admin Checkbox */}
-          <label className="flex items-center gap-2 text-sm text-gray-700">
-            <input
-              type="checkbox"
+        <div>
+            <label className="text-sm text-gray-600 mb-1 block">Vai trò</label>
+            <select
               name="admin"
-              checked={formData.admin}
+              value={formData.admin ? "Admin" : "User"}
               onChange={handleChange}
-            />
-            Là Admin
-          </label>
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="0">User</option>
+              <option value="1">Admin</option>
+            </select>
+          </div>
 
+          {/* Submit Button */}
           <button
             type="submit"
             className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-all shadow-md"
