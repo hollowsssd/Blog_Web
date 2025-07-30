@@ -12,33 +12,33 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const data = [ 
-  { 
-    name: "Jan", 
+const data = [
+  {
+    name: "Jan",
     users: 100,
-  }, 
-  { 
-    name: "Feb", 
+  },
+  {
+    name: "Feb",
     users: 150,
-  }, 
-  { 
-    name: "Mar", 
+  },
+  {
+    name: "Mar",
     users: 500,
-  }, 
-  { 
-    name: "Apr", 
+  },
+  {
+    name: "Apr",
     users: 300,
-  }, 
-  { 
-    name: "May", 
+  },
+  {
+    name: "May",
     users: 350,
-  }, 
-  { 
-    name: "Jun", 
+  },
+  {
+    name: "Jun",
     users: 420,
-  }, 
-  { 
-    name: "Jul", 
+  },
+  {
+    name: "Jul",
     users: 50,
   },
   {
@@ -60,10 +60,10 @@ const data = [
   {
     name: "Dec",
     users: 800,
-  }, 
-]; 
- 
-const UserGrowthChart = () => { 
+  },
+];
+
+const UserGrowthChart = () => {
   return (
     <div className="bg-white rounded-xl w-full h-full p-4">
       <div className="flex justify-between items-center">
@@ -101,12 +101,12 @@ const UserGrowthChart = () => {
             type="monotone"
             dataKey="users"
             stroke="#4CAF50"
-            strokeWidth={5} 
-          /> 
+            strokeWidth={5}
+          />
         </LineChart>
       </ResponsiveContainer>
-    </div> 
-  ); 
-}; 
- 
+    </div>
+  );
+};
+
 export default UserGrowthChart;

@@ -1,9 +1,7 @@
 package com.example.Blog.model;
 
 import java.util.Set;
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -33,7 +31,7 @@ public class Tags {
 
 
     @ManyToMany(mappedBy = "tags")
-    @JsonBackReference
+    @JsonIgnore
     private Set<Posts> posts;
 
     

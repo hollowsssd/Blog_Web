@@ -2,9 +2,6 @@ package com.example.Blog.model;
 
 import java.time.LocalDateTime;
 import java.util.Set;
-
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -59,7 +56,6 @@ public class Posts {
 
     // ManyToMany với tags
     @ManyToMany
-    @JsonManagedReference
     @JoinTable(name = "post_tags", // bảng join
             joinColumns = @JoinColumn(name = "post_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
     private Set<Tags> tags;

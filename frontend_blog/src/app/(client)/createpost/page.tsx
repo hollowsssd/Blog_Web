@@ -1,27 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaUpload } from "react-icons/fa";
 import Image from "next/image";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Button } from "@/app/components/ui/button";
 import Link from "next/link";
+import Select from "react-select";
 
 export default function CreatePostPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
   const [content, setContent] = useState("");
   const [cover, setCover] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [tagOptions, setTagOptions] = useState<{ value: number; label: string }[]>([]);
+  const [selectedTags, setSelectedTags] = useState<{ value: number; label: string }[]>([]);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const [errors, setErrors] = useState({
     title: "",
     description: "",
-    category: "",
     content: "",
     cover: "",
+    tags: "",
   });
 
   const handleImageDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -54,18 +61,73 @@ export default function CreatePostPage() {
     const newErrors = {
       title: title.trim() ? "" : "⚠️ Tiêu đề không được để trống.",
       description: description.trim() ? "" : "⚠️ Mô tả không được để trống.",
-      category: category ? "" : "⚠️ Vui lòng chọn chủ đề.",
       content: content.trim() ? "" : "⚠️ Nội dung không được để trống.",
       cover: cover ? "" : "⚠️ Vui lòng chọn ảnh bìa.",
+      tags: selectedTags.length > 0 ? "" : "⚠️ Vui lòng chọn ít nhất một thẻ.",
     };
 
     setErrors(newErrors);
     return Object.values(newErrors).every((e) => e === "");
   };
 
-  const handleSubmit = () => {
+  //Tìm các chủ đề (tags)
+  interface Tag {
+    id: number;
+    name: string;
+  }
+
+  // Fetch tags from backend on mount
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const res = await fetch("http://localhost:8080/api/tags");
+        const data: Tag[] = await res.json();
+        const options = data.map((tag) => ({
+          value: tag.id,
+          label: tag.name,
+        }));
+        setTagOptions(options);
+      } catch (error) {
+        console.error("Error fetching tags:", error);
+      }
+    };
+
+    fetchTags();
+  }, []);
+
+
+  //Đăng bài viết
+  const handleSubmit = async () => {
     if (!validate()) return;
-    alert("✅ Bài viết đã được gửi!");
+
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("description", description);
+    formData.append("content", content);
+    formData.append("userId", "1"); // Replace with actual user ID
+    formData.append("isPublished", "true");
+    formData.append("tags", selectedTags.map((tag) => tag.value).join(","));
+
+    if (cover) formData.append("file", cover);
+
+    try { formData.forEach((value, key) => {
+                console.log(`${key}: ${value}`);
+              });
+      const response = await fetch("http://localhost:8080/post/add", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.text();
+
+      if (!response.ok) throw new Error(result);
+
+      alert("✅ Bài viết đã được gửi thành công!");
+      console.log(result);
+    } catch (error) {
+      console.error("❌ Lỗi khi gửi bài viết:", error);
+      alert("❌ Đã xảy ra lỗi khi gửi bài viết.");
+    }
   };
 
   return (
@@ -139,28 +201,27 @@ export default function CreatePostPage() {
             )}
           </div>
 
-          {/* Select chủ đề */}
+          {/* Select Tags */}
           <div>
-            <select
-              value={category}
-              onChange={(e) => {
-                setCategory(e.target.value);
-                if (e.target.value) {
-                  setErrors((prev) => ({ ...prev, category: "" }));
-                }
-              }}
-              className="px-6 py-4 text-gray-700 rounded-2xl shadow-sm w-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            >
-              <option value="">📂 -- Chọn chủ đề --</option>
-              <option value="Công Nghệ">💻 Công Nghệ</option>
-              <option value="Du Lịch">🌍 Du Lịch</option>
-              <option value="Giáo Dục">📚 Giáo Dục</option>
-              <option value="Sức Khỏe">❤️ Sức Khỏe</option>
-              <option value="Kinh Tế">💼 Kinh Tế</option>
-            </select>
-            {errors.category && (
-              <p className="text-sm text-red-600 mt-1">{errors.category}</p>
+            <p className="mb-2 font-medium text-gray-700">🏷️ Chọn chủ đề:</p>
+            {isMounted && (
+              <div suppressHydrationWarning>
+                <Select
+                  key="tag-select"
+                  isMulti
+                  options={tagOptions}
+                  value={selectedTags}
+                  onChange={(selected) => {
+                    setSelectedTags(selected as { value: number; label: string }[]);
+                    setErrors((prev) => ({ ...prev, tags: "" }));
+                  }}
+                  className="react-select-container"
+                  classNamePrefix="react-select"
+                  placeholder="🔍 Tìm và chọn chủ đề..."
+                />
+              </div>
             )}
+            {errors.tags && <p className="text-sm text-red-600 mt-1">{errors.tags}</p>}
           </div>
 
           <div>
