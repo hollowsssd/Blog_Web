@@ -27,9 +27,9 @@ public class UsersService {
         return userRepository.findById(id);
     }
 
-    public Optional<Users> findByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
+    // public Optional<Users> findByEmail(String email) {
+    //     return userRepository.findByEmail(email);
+    // }
 
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
@@ -41,6 +41,10 @@ public class UsersService {
 
     public void deleteUsers(Integer id) {
         userRepository.deleteById(id);
+    }
+
+    public Users findByEmail(String email) {
+        return userRepository.findByEmail(email);
     }
 
     public Users register(String name, String email, String rawPassword) {

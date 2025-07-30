@@ -20,7 +20,7 @@ public class TagsController {
     @Autowired
     private TagsRepository tagsRepository;
 
-    @PostMapping
+    @PostMapping("/add")
     public String createTag(@RequestBody Tags tag) {
         tagsRepository.save(tag);
         return "created tag";
