@@ -2,32 +2,40 @@ package com.example.Blog.config;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 public class SecurityConfig {
+    @Autowired
+    private Jwtfilter jwtfilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .cors(Customizer.withDefaults()) // Enable CORS
-                .csrf(csrf -> csrf.disable()) // Disable CSRF
+        return http
+                .cors(Customizer.withDefaults()) // Bật CORS
+                .csrf(csrf -> csrf.disable()) // Tắt CSRF (vì dùng JWT)
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll() // Permit all requests
+                        .requestMatchers("/api/auth/**","post/user/**", "/post/tag/**","/likes/count/**","/api/tags","/post","/api/user/search","/post/images/**","/comments/post/**")
+                        .permitAll() 
+                        .anyRequest().authenticated() 
                 )
-                .httpBasic(Customizer.withDefaults()) // Optional
-                .formLogin(form -> form.disable()); // Disable form login
-
-        return http.build();
+                .httpBasic(Customizer.withDefaults()) 
+                .formLogin(form -> form.disable()) 
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtfilter, UsernamePasswordAuthenticationFilter.class )
+                .build();
     }
 
     // Config CORS cho tất cả API
@@ -48,4 +56,7 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
+
 }
+

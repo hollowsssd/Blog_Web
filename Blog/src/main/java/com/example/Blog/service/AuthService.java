@@ -1,7 +1,5 @@
 package com.example.Blog.service;
 
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,29 +12,27 @@ public class AuthService {
     @Autowired
     private UserRepository userRepository;
 
-    public Optional<Users> login(String email, String rawPassword) {
-        Optional<Users> userOpt = userRepository.findByEmail(email);
+    public Users login(String email, String rawPassword) {
+        Users user = userRepository.findByEmail(email);
 
-        if (userOpt.isEmpty()) return Optional.empty();
-
-        Users user = userOpt.get();
-
-        if (Boolean.TRUE.equals(user.getBanned())) {
-            // Người dùng bị ban, không cho đăng nhập
-            return Optional.empty();
+        if (user == null) {
+            return null; // Không tìm thấy người dùng
         }
 
-        // Kiểm tra password (plain text – nên hash thực tế)
-       if (Boolean.TRUE.equals(user.getBanned())) {
-    return Optional.empty(); // Không cho login nếu bị ban
-}
+        if (Boolean.TRUE.equals(user.getBanned())) {
+            return null; // Người dùng bị ban
+        }
 
-        return Optional.empty();
+        // Kiểm tra password (plain text)
+        if (user.getPassword().equals(rawPassword)) {
+            return user; // Đăng nhập thành công
+        }
+
+        return null; // Sai mật khẩu
     }
 
     public boolean isBanned(String email) {
-        return userRepository.findByEmail(email)
-                .map(Users::getBanned)
-                .orElse(false);
+        Users user = userRepository.findByEmail(email);
+        return user != null && Boolean.TRUE.equals(user.getBanned());
     }
 }

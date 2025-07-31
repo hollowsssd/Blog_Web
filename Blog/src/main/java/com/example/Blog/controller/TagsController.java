@@ -15,8 +15,8 @@ public class TagsController {
     @Autowired
     private TagsRepository tagsRepository;
 
-    // Tạo tag
-    @PostMapping
+
+    @PostMapping("/add")
     public String createTag(@RequestBody Tags tag) {
         tagsRepository.save(tag);
         return "Created tag successfully";

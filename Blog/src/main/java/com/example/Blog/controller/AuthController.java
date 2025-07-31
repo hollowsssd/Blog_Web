@@ -5,14 +5,18 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.example.Blog.model.Users;
+import com.example.Blog.service.JwtService;
 import com.example.Blog.service.UsersService;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*") // Cho phép gọi từ frontend
 public class AuthController {
 
     @Autowired
@@ -21,15 +25,16 @@ public class AuthController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private JwtService jwtService;
+
     // Đăng nhập
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> payload) {
         String email = payload.get("email");
         String password = payload.get("password");
 
-        Users user = usersService.findByEmail(email).orElse(null);
-
-        // Kiểm tra không tồn tại hoặc sai mật khẩu
+        Users user = usersService.findByEmail(email);
         if (user == null || !passwordEncoder.matches(password, user.getPassword())) {
             return ResponseEntity.badRequest().body(Map.of("message", "Email hoặc mật khẩu không đúng!"));
         }
@@ -45,13 +50,13 @@ public class AuthController {
                         "id", user.getId(),
                         "name", user.getName(),
                         "email", user.getEmail(),
-                        "admin", user.getAdmin(),
-                        "banned", user.getBanned()),
-                "accessToken", "fake-token-123" // TODO: Thay bằng JWT sau này
+                        "admin", user.getAdmin()
+                ),
+                "accessToken", "fake-token-123" // sau có thể dùng JWT
         ));
     }
 
-    // Đăng ký
+    
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> payload) {
         String name = payload.get("name");

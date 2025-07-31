@@ -19,7 +19,7 @@ public class PostLikesService {
         return postLikesRepository.countByPostId(postId);
     }
 
-    @Transactional // ✅ ADD THIS
+    @Transactional //  ADD THIS
     public boolean toggleLike(Integer userId, Integer postId) {
         Optional<PostLikes> existing = postLikesRepository.findByUserIdAndPostId(userId, postId);
         if (existing.isPresent()) {
