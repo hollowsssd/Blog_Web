@@ -5,6 +5,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,6 +39,11 @@ public class AuthController {
             return ResponseEntity.badRequest().body(Map.of("message", "Email hoặc mật khẩu không đúng!"));
         }
 
+        // Kiểm tra nếu bị ban
+        if (user.getBanned() == true ) {
+            return ResponseEntity.status(403).body(Map.of("message", "Tài khoản của bạn đã bị cấm."));
+        }
+
         return ResponseEntity.ok(Map.of(
                 "message", "Đăng nhập thành công!",
                 "user", Map.of(
@@ -46,10 +52,11 @@ public class AuthController {
                         "email", user.getEmail(),
                         "admin", user.getAdmin()
                 ),
-                "accessToken" , jwtService.generateToken(user.getId(),user.getEmail(),user.getName(),user.getAdmin())
+               jwtService.generateToken(user.getId(),user.getEmail(),user.getName(),user.getAdmin())
         ));
     }
- 
+
+    
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> payload) {
         String name = payload.get("name");
@@ -66,8 +73,6 @@ public class AuthController {
                 "user", Map.of(
                         "id", newUser.getId(),
                         "name", newUser.getName(),
-                        "email", newUser.getEmail()     
-                )
-        ));
+                        "email", newUser.getEmail())));
     }
 }

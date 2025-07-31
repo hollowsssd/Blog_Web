@@ -13,6 +13,8 @@ public interface UserRepository extends JpaRepository<Users, Integer> {
         // Optional<Users> findByEmail(String email);
         List<Users> findByNameContaining(String Keyword);
         boolean existsByEmail(String email); // ← Câu lệnh kiểm tra
+        List<Users> findByBanned(boolean banned);
+
 
         Users findByEmail(String email);
 

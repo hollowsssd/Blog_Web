@@ -1,67 +1,85 @@
-"use client";
+'use client';
+
+import { useEffect, useState } from "react";
+import axios, { AxiosError } from "axios";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { Eye, Pencil, Trash2, Ban } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent } from "@/app/components/ui/card";
 import { Input } from "@/app/components/ui/input";
-import axios, { AxiosError } from "axios";
-import { Ban, Eye, Pencil, Trash2 } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 interface User {
   id: number;
   name: string;
   email: string;
   avatar?: string;
-  status: "active" | "banned";
+  banned: boolean;
 }
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
-    axios
-      .get(`${process.env.NEXT_PUBLIC_API_URL}/api/user`)
-      .then((res) => {
-        const safeUsers: User[] = (res.data as User[]).filter(
-          (u) => typeof u.name === "string" && typeof u.email === "string"
-        );
-        setUsers(safeUsers);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Lỗi khi lấy user:", err);
-        console.log(process.env.NEXT_PUBLIC_API_URL)
-        console.log("API_URL:", process.env.NEXT_PUBLIC_API_URL);
-
-
-        setError("Không thể tải danh sách người dùng.");
-        setLoading(false);
-      });
+    fetchUsers();
   }, []);
 
-  const filteredUsers = users.filter((u: User) =>
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get("http://localhost:8080/api/user");
+      const data = res.data as User[];
+      const filtered = data.filter(
+        (u) => typeof u.name === "string" && typeof u.email === "string"
+      );
+      setUsers(filtered);
+    } catch (err) {
+      setError("Không thể tải danh sách người dùng.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredUsers = users.filter((u) =>
     u.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleBan = (id: number) => {
+  const handleBan = async (userId: number) => {
+  const user = users.find((u) => u.id === userId);
+  if (!user) return;
+
+  try {
+    const apiUrl = user.banned
+      ? `http://localhost:8080/api/user/unban/${userId}`
+      : `http://localhost:8080/api/user/ban/${userId}`;
+
+    const res = await axios.put(apiUrl);
+
+    toast.success(res.data.message || "Cập nhật trạng thái thành công!");
+
     setUsers((prev) =>
-      prev.map((user) =>
-        user.id === id
-          ? {
-            ...user,
-            status: user.status === "banned" ? "active" : "banned",
-          }
-          : user
+      prev.map((u) =>
+        u.id === userId ? { ...u, banned: !user.banned } : u
       )
     );
-  };
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      toast.error(
+        error.response?.data?.message ||
+          "Đã xảy ra lỗi khi cập nhật trạng thái."
+      );
+    } else {
+      toast.error("Lỗi không xác định.");
+    }
+  }
+};
 
   const handleDelete = async (id: number) => {
     if (!window.confirm("Bạn có chắc chắn muốn xoá người dùng này?")) return;
@@ -69,26 +87,16 @@ export default function AdminUsersPage() {
     try {
       const res = await axios.delete(`http://localhost:8080/api/user/${id}`);
       setUsers((prev) => prev.filter((user) => user.id !== id));
-      toast.success("🗑️ Xoá người dùng thành công!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-      });
+      toast.success("🗑️ Xoá người dùng thành công!");
     } catch (err) {
       const error = err as AxiosError<{ message: string }>;
-      if (error.response?.data?.message) {
-        toast.error(error.response.data.message);
-      } else {
-        toast.error("Xảy ra lỗi khi xoá người dùng.");
-      }
+      toast.error(error.response?.data?.message || "Xảy ra lỗi khi xoá.");
     }
   };
 
   return (
     <main className="min-h-screen bg-[#f7fafd] px-6 py-10">
-      <ToastContainer /> {/* ✅ Toast hiển thị tại đây */}
+      <ToastContainer />
       <div className="max-w-7xl mx-auto">
         <header className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-6">
           <div>
@@ -137,14 +145,13 @@ export default function AdminUsersPage() {
                       </h2>
                       <p className="text-sm text-gray-500">{user.email}</p>
                       <p
-                        className={`text-sm font-medium ${user.status === "banned"
+                        className={`text-sm font-medium ${
+                          user.banned
                             ? "text-red-500"
                             : "text-green-600"
-                          }`}
+                        }`}
                       >
-                        {user.status === "banned"
-                          ? "🚫 Đã bị cấm"
-                          : "✅ Hoạt động"}
+                        {user.banned ? "🚫 Đã bị cấm" : "✅ Hoạt động"}
                       </p>
                     </div>
                   </div>
@@ -158,22 +165,18 @@ export default function AdminUsersPage() {
                         <Pencil className="w-4 h-4" />
                       </IconButton>
                     </Link>
-
                     <IconButton
-                      title="Xóa người dùng"
+                      title="Xoá người dùng"
                       onClick={() => handleDelete(user.id)}
                       className="hover:text-red-600"
                     >
                       <Trash2 className="w-4 h-4" />
                     </IconButton>
-
                     <IconButton
-                      title={
-                        user.status === "banned" ? "Gỡ cấm" : "Cấm người dùng"
-                      }
+                      title={user.banned ? "Gỡ cấm" : "Cấm người dùng"}
                       onClick={() => handleBan(user.id)}
                       className={
-                        user.status === "banned"
+                        user.banned
                           ? "hover:text-green-600"
                           : "hover:text-red-600"
                       }
