@@ -1,19 +1,30 @@
 "use client";
 
-import type { AxiosError } from "axios";
-import axios from "axios";
-import Link from "next/link";
+import { useEffect, useState } from "react";
+import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import Link from "next/link";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function LoginPage() {
   const router = useRouter();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+
+  // ✅ Tự kiểm tra nếu đã login rồi
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      if (user?.banned) {
+        localStorage.removeItem("user");
+        return;
+      }
+      user.admin ? router.push("/admin") : router.push("/");
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -24,28 +35,33 @@ export default function LoginPage() {
         password,
       });
 
-      const data = res.data;
-      console.log("✅ Dữ liệu user:", data.user);
-      console.log("✅ Kiểu dữ liệu admin:", typeof data.user.admin);
+      const user = res.data.user;
 
-      localStorage.setItem("user", JSON.stringify(data.user));
+      if (!user) {
+        throw new Error("Không thể lấy thông tin người dùng.");
+      }
+
+      if (user.banned) {
+        toast.error("Tài khoản của bạn đã bị khóa.", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+        return;
+      }
+
+      localStorage.setItem("user", JSON.stringify(user));
 
       toast.success("Đăng nhập thành công!", {
         position: "top-right",
         autoClose: 1000,
       });
 
-      // Kiểm tra quyền admin
-      if (Number(data.user.admin) === 1) {
-        console.log("✅ Là admin → chuyển đến /admin");
-        router.push("/admin");
-      } else {
-        console.log("❌ Không phải admin → chuyển đến /");
-        router.push("/");
-      }
+      setTimeout(() => {
+        user.admin ? router.push("/admin") : router.push("/");
+      }, 1000);
     } catch (err: unknown) {
       const error = err as AxiosError<{ message: string }>;
-
+      const status = error.response?.status;
       const message =
         error.response?.data?.message || "Đã xảy ra lỗi. Vui lòng thử lại.";
 
@@ -55,6 +71,11 @@ export default function LoginPage() {
         position: "top-right",
         autoClose: 3000,
       });
+
+      // ⚠️ Nếu bị 403 (banned), xóa thông tin cũ
+      if (status === 403) {
+        localStorage.removeItem("user");
+      }
     }
   };
 
@@ -165,7 +186,6 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* 👇 Toast hiển thị ở đây */}
       <ToastContainer />
     </main>
   );

@@ -5,11 +5,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.example.Blog.model.Users;
 import com.example.Blog.service.UsersService;
@@ -32,8 +28,15 @@ public class AuthController {
         String password = payload.get("password");
 
         Users user = usersService.findByEmail(email).orElse(null);
+
+        // Kiểm tra không tồn tại hoặc sai mật khẩu
         if (user == null || !passwordEncoder.matches(password, user.getPassword())) {
             return ResponseEntity.badRequest().body(Map.of("message", "Email hoặc mật khẩu không đúng!"));
+        }
+
+        // Kiểm tra nếu bị ban
+        if (user.getBanned() == true ) {
+            return ResponseEntity.status(403).body(Map.of("message", "Tài khoản của bạn đã bị cấm."));
         }
 
         return ResponseEntity.ok(Map.of(
@@ -42,13 +45,13 @@ public class AuthController {
                         "id", user.getId(),
                         "name", user.getName(),
                         "email", user.getEmail(),
-                        "admin", user.getAdmin()
-                ),
-                "accessToken", "fake-token-123" // sau có thể dùng JWT
+                        "admin", user.getAdmin(),
+                        "banned", user.getBanned()),
+                "accessToken", "fake-token-123" // TODO: Thay bằng JWT sau này
         ));
     }
 
-    
+    // Đăng ký
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> payload) {
         String name = payload.get("name");
@@ -65,8 +68,6 @@ public class AuthController {
                 "user", Map.of(
                         "id", newUser.getId(),
                         "name", newUser.getName(),
-                        "email", newUser.getEmail()     
-                )
-        ));
+                        "email", newUser.getEmail())));
     }
 }

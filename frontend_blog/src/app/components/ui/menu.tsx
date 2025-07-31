@@ -44,10 +44,11 @@ export default function Menu() {
         { icon: "/images/home.png", label: "Home", href: "/admin" },
         {
           icon: "/images/product.png",
-          label: "Product",
+          label: "Tags",
           href: "/list/product",
         },
         { icon: "/images/student.png", label: "Users", href: "/list/users" },
+          { icon: "/images/student.png", label: "Report", href: "/list/report" },
         { icon: "/images/logout.png", label: "Logout", href:"/"},
       ],
     },

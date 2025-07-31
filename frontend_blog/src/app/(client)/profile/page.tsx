@@ -1,130 +1,197 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import { FaHeart, FaCommentDots, FaEdit, FaTrash } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
+import { FaHeart, FaCommentDots, FaEdit, FaTrash, FaArrowLeft } from "react-icons/fa";
 
-const UserProfile = () => {
-  const user = {
-    name: "Nguyễn Văn A",
-    email: "nguyenvana@example.com",
-    joinedDate: "Tháng 3, 2023",
-    avatar: "/images/avatar.png",
-    bio: "💬 Yêu thích viết blog, chia sẻ kiến thức và kết nối cộng đồng.",
-  };
+// Định nghĩa kiểu dữ liệu
+type Post = {
+  id: number;
+  title: string;
+  content: string;
+  likes: number;
+  comments: number;
+  image: string;
+};
 
-  const [posts, setPosts] = useState([
+interface PostCardProps {
+  post: Post;
+  isEditable?: boolean;
+  onDelete?: (id: number) => void;
+}
+
+// Thẻ hiển thị từng bài viết
+const PostCard: React.FC<PostCardProps> = ({ post, isEditable = false, onDelete }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4 }}
+    className="bg-white rounded-2xl shadow-md hover:shadow-xl overflow-hidden"
+  >
+    <Image
+      src={post.image}
+      alt={post.title}
+      width={500}
+      height={250}
+      className="w-full h-48 object-cover"
+    />
+    <div className="p-4 space-y-2">
+      <h3 className="font-semibold text-gray-800 line-clamp-1">{post.title}</h3>
+      <p className="text-sm text-gray-600 line-clamp-2">{post.content}</p>
+      <div className="flex items-center justify-between text-gray-500 text-sm pt-1">
+        <span className="flex items-center gap-1">
+          <FaHeart className="text-red-500" /> {post.likes}
+        </span>
+        <span className="flex items-center gap-1">
+          <FaCommentDots /> {post.comments}
+        </span>
+      </div>
+      {isEditable && onDelete && (
+        <div className="flex gap-4 pt-2 text-sm">
+          <Link href={`/profile/edit?id=${post.id}`}>
+            <button className="text-blue-600 hover:underline flex items-center gap-1">
+              <FaEdit /> Sửa
+            </button>
+          </Link>
+          <button
+            onClick={() => onDelete(post.id)}
+            className="text-red-600 hover:underline flex items-center gap-1"
+          >
+            <FaTrash /> Xoá
+          </button>
+        </div>
+      )}
+    </div>
+  </motion.div>
+);
+
+export default function UserProfile() {
+  const [activeTab, setActiveTab] = useState<"yourPosts" | "likedPosts">("yourPosts");
+
+  const posts: Post[] = [
     {
       id: 1,
-      title: "Lập trình là gì?",
-      content: "Lập trình là quá trình viết mã để máy tính hiểu và thực thi.",
-      likes: 32,
-      comments: 4,
+      title: "Học Next.js căn bản",
+      content: "Bài viết hướng dẫn cách bắt đầu với Next.js",
+      likes: 12,
+      comments: 3,
       image: "/post1.jpg",
     },
     {
       id: 2,
-      title: "Học Tailwind CSS như thế nào?",
-      content: "Tailwind giúp bạn xây dựng giao diện nhanh chóng và đẹp mắt.",
-      likes: 18,
-      comments: 2,
+      title: "Tailwind CSS dễ không?",
+      content: "Giải thích cách dùng utility CSS nhanh và hiệu quả",
+      likes: 8,
+      comments: 1,
       image: "/post2.jpg",
     },
-  ]);
+  ];
+
+  const likedPosts: Post[] = [
+    {
+      id: 3,
+      title: "React vs Vue?",
+      content: "So sánh giữa hai framework phổ biến",
+      likes: 34,
+      comments: 10,
+      image: "/post3.jpg",
+    },
+  ];
 
   const handleDelete = (id: number) => {
-    if (window.confirm("Bạn có chắc muốn xoá bài viết này?")) {
-      setPosts((prev) => prev.filter((post) => post.id !== id));
+    if (window.confirm("Bạn muốn xoá bài viết?")) {
+      console.log("Xoá:", id);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-10 px-4">
-      <div className="max-w-6xl mx-auto">
-        {/* Logo */}
-        <div className="mb-10 text-center">
-          <Link href="/">
-            <span className="text-3xl font-extrabold text-blue-600 tracking-wide">
-              4TL<span className="text-gray-900">BLOG</span>
-            </span>
-          </Link>
-        </div>
+  const user = {
+    name: "Nguyễn Văn A",
+    email: "nguyenvana@example.com",
+    avatar: "/images/avatar.png",
+    joinedDate: "Tháng 3, 2023",
+  };
 
-        {/* User Info */}
-        <div className="flex flex-col items-center text-center mb-12">
+  return (
+    <div className="min-h-screen bg-gray-50 pb-10">
+      {/* Header */}
+  <header className=" p-4 flex items-center justify-center relative">
+   <Link href="/">
+            <h1 className="text-2xl font-bold text-blue-600">
+              4TL<span className="text-gray-900">BLOG</span>
+            </h1>
+          </Link>
+</header>
+
+      {/* Nội dung chính */}
+      <div className="max-w-5xl mx-auto px-4 mt-10 space-y-10">
+        {/* Thông tin user */}
+        <div className="bg-white rounded-2xl shadow p-6 text-center">
           <Image
             src={user.avatar}
-            alt="Avatar"
-            width={110}
-            height={110}
-            className="rounded-full border-4 border-white shadow-md hover:scale-105 transition-transform duration-300"
+            alt="avatar"
+            width={100}
+            height={100}
+            className="mx-auto rounded-full border shadow"
           />
-          <h1 className="mt-4 text-3xl font-bold text-gray-800">{user.name}</h1>
-          <p className="text-gray-600">{user.email}</p>
-          <p className="text-sm text-gray-500">📅 Tham gia: {user.joinedDate}</p>
-          <p className="mt-3 text-gray-700 max-w-xl italic">{user.bio}</p>
+          <h2 className="mt-4 text-2xl font-bold text-gray-800">{user.name}</h2>
+          <p className="text-sm text-gray-500">{user.email}</p>
+        
+          <p className="text-xs text-gray-400 mt-1">📅 {user.joinedDate}</p>
         </div>
 
-        {/* Posts */}
-        <div>
-          <h2 className="text-2xl font-semibold mb-6 text-gray-800 border-b pb-2">
-            📝 Bài viết của bạn
-          </h2>
+        {/* Tab chọn bài viết */}
+        <div className="flex justify-center">
+          <div className="inline-flex p-1 bg-white shadow rounded-full space-x-1">
+            <button
+              onClick={() => setActiveTab("yourPosts")}
+              className={`px-5 py-2 rounded-full transition font-medium text-sm ${
+                activeTab === "yourPosts"
+                  ? "bg-blue-600 text-white"
+                  : "text-blue-600 hover:bg-blue-100"
+              }`}
+            >
+              📝 Bài viết của bạn
+            </button>
+            <button
+              onClick={() => setActiveTab("likedPosts")}
+              className={`px-5 py-2 rounded-full transition font-medium text-sm ${
+                activeTab === "likedPosts"
+                  ? "bg-red-500 text-white"
+                  : "text-red-500 hover:bg-red-100"
+              }`}
+            >
+              ❤️ Đã thích
+            </button>
+          </div>
+        </div>
 
-          {posts.length === 0 ? (
-            <p className="text-gray-600">Bạn chưa có bài viết nào.</p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {posts.map((post) => (
-                <div
+        {/* Danh sách bài viết */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4 }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {(activeTab === "yourPosts" ? posts : likedPosts).length === 0 ? (
+              <p className="col-span-full text-center text-gray-500">Không có bài viết nào.</p>
+            ) : (
+              (activeTab === "yourPosts" ? posts : likedPosts).map((post) => (
+                <PostCard
                   key={post.id}
-                  className="bg-white rounded-2xl shadow hover:shadow-xl transition duration-300 overflow-hidden"
-                >
-                  <Image
-                    src={post.image}
-                    alt="Post"
-                    width={500}
-                    height={250}
-                    className="w-full h-52 object-cover"
-                  />
-                  <div className="p-4">
-                    <h3 className="text-lg font-bold text-gray-900 line-clamp-1">
-                      {post.title}
-                    </h3>
-                    <p className="text-gray-600 text-sm mt-1 line-clamp-2">
-                      {post.content}
-                    </p>
-                    <div className="flex items-center gap-4 mt-3 text-gray-500 text-sm">
-                      <span className="flex items-center gap-1">
-                        <FaHeart className="text-red-500" /> {post.likes}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <FaCommentDots /> {post.comments}
-                      </span>
-                    </div>
-                    <div className="flex gap-4 mt-4 text-sm">
-                      <Link href={`/profile/edit?id=${post.id}`}>
-                        <button className="flex items-center gap-1 text-blue-600 hover:underline">
-                          <FaEdit /> Sửa
-                        </button>
-                      </Link>
-                      <button
-                        onClick={() => handleDelete(post.id)}
-                        className="flex items-center gap-1 text-red-600 hover:underline"
-                      >
-                        <FaTrash /> Xoá
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                  post={post}
+                  isEditable={activeTab === "yourPosts"}
+                  onDelete={handleDelete}
+                />
+              ))
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );
-};
-
-export default UserProfile;
+}

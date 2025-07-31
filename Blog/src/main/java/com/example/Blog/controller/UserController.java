@@ -2,6 +2,7 @@ package com.example.Blog.controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,13 +20,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.Blog.model.Users;
+import com.example.Blog.repository.UserRepository;
 import com.example.Blog.service.UsersService;
 
 @RestController
 @RequestMapping("/api/user")
 @CrossOrigin(origins = "*") // 🔁 Cho phép gọi từ frontend khác domain (ví dụ: React/Next.js)
 public class UserController {
-
+    @Autowired
+    private UserRepository userRepository;
     @Autowired
     private UsersService usersService;
 
@@ -100,11 +103,38 @@ public class UserController {
         return ResponseEntity.ok(Map.of("message", "Cập nhật người dùng thành công!"));
     }
 
-
-    
-      @GetMapping("/search")
+    @GetMapping("/search")
     public List<Users> searchUsers(@RequestParam("name") String keyword) {
         return usersService.searchUsers(keyword);
     }
-}
 
+    @PutMapping("/ban/{id}")
+    public ResponseEntity<?> banUser(@PathVariable Integer id) {
+        Optional<Users> optionalUser = userRepository.findById(id);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Người dùng không tồn tại!"));
+        }
+
+        Users user = optionalUser.get();
+        user.setBanned(true); // 🚫 Ban user
+        userRepository.save(user);
+        return ResponseEntity.ok(Map.of("message", "Đã ban người dùng"));
+        
+    }
+
+    @PutMapping("/unban/{id}")
+    public ResponseEntity<?> unbanUser(@PathVariable Integer id) {
+        Optional<Users> optionalUser = userRepository.findById(id);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Người dùng không tồn tại!"));
+        }
+
+        Users user = optionalUser.get();
+        user.setBanned(false); // ✅ Mở ban user
+        userRepository.save(user);
+        return ResponseEntity.ok(Map.of("message", "Đã mở ban người dùng"));
+    }
+
+}
