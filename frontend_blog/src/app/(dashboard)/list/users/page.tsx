@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
 import axios, { AxiosError } from "axios";
@@ -29,11 +29,18 @@ export default function AdminUsersPage() {
   useEffect(() => {
     fetchUsers();
   }, []);
+  
+    const token = "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ1c2VyQGdtYWlsLmNvbSIsIm5hbWUiOiJuYW0iLCJhZG1pbiI6ZmFsc2UsImlkIjoxMCwiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSIsImlhdCI6MTc1MzkzNjIwMiwiZXhwIjoxNzU0MDIyNjAyfQ.jl8J1VABf6LeU8q7xwxIDIpOPNmaflK-2YaRXuYhQiQIt6HKuNS30i4ZPf6xWLtx"; // hoặc từ context, cookie, etc.
 
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:8080/api/user");
+      const res = await axios.get("http://localhost:8080/api/user", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       const data = res.data as User[];
       const filtered = data.filter(
         (u) => typeof u.name === "string" && typeof u.email === "string"
@@ -52,34 +59,38 @@ export default function AdminUsersPage() {
   );
 
   const handleBan = async (userId: number) => {
-  const user = users.find((u) => u.id === userId);
-  if (!user) return;
+    const user = users.find((u) => u.id === userId);
+    if (!user) return;
 
-  try {
-    const apiUrl = user.banned
-      ? `http://localhost:8080/api/user/unban/${userId}`
-      : `http://localhost:8080/api/user/ban/${userId}`;
+    try {
+      const apiUrl = user.banned
+        ? `http://localhost:8080/api/user/unban/${userId}`
+        : `http://localhost:8080/api/user/ban/${userId}`;
 
-    const res = await axios.put(apiUrl);
+      const res = await axios.put(apiUrl, 
+        {},
+        {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    toast.success(res.data.message || "Cập nhật trạng thái thành công!");
+      toast.success(res.data.message || "Cập nhật trạng thái thành công!");
 
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.id === userId ? { ...u, banned: !user.banned } : u
-      )
-    );
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      toast.error(
-        error.response?.data?.message ||
-          "Đã xảy ra lỗi khi cập nhật trạng thái."
+      setUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, banned: !user.banned } : u))
       );
-    } else {
-      toast.error("Lỗi không xác định.");
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        toast.error(
+          error.response?.data?.message ||
+            "Đã xảy ra lỗi khi cập nhật trạng thái."
+        );
+      } else {
+        toast.error("Lỗi không xác định.");
+      }
     }
-  }
-};
+  };
 
   const handleDelete = async (id: number) => {
     if (!window.confirm("Bạn có chắc chắn muốn xoá người dùng này?")) return;
@@ -146,9 +157,7 @@ export default function AdminUsersPage() {
                       <p className="text-sm text-gray-500">{user.email}</p>
                       <p
                         className={`text-sm font-medium ${
-                          user.banned
-                            ? "text-red-500"
-                            : "text-green-600"
+                          user.banned ? "text-red-500" : "text-green-600"
                         }`}
                       >
                         {user.banned ? "🚫 Đã bị cấm" : "✅ Hoạt động"}

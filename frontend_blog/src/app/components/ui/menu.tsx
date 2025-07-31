@@ -45,7 +45,7 @@ export default function Menu() {
         {
           icon: "/images/product.png",
           label: "Tags",
-          href: "/list/product",
+          href: "/list/tags",
         },
         { icon: "/images/student.png", label: "Users", href: "/list/users" },
           { icon: "/images/student.png", label: "Report", href: "/list/report" },
