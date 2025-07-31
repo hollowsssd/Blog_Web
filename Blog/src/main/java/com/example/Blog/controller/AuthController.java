@@ -52,7 +52,7 @@ public class AuthController {
                         "email", user.getEmail(),
                         "admin", user.getAdmin()
                 ),
-                "accessToken", "fake-token-123" // sau có thể dùng JWT
+               jwtService.generateToken(user.getId(),user.getEmail(),user.getName(),user.getAdmin())
         ));
     }
 
