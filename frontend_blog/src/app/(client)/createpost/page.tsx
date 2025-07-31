@@ -1,12 +1,16 @@
 "use client";
 
-import { Button } from "@/app/components/ui/button";
+
+import { useState, useEffect } from "react";
+import { FaUpload } from "react-icons/fa";
+import Image from "next/image";
+
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { FaUpload } from "react-icons/fa";
+
+
 import Select from "react-select";
 
 export default function CreatePostPage() {
@@ -104,19 +108,18 @@ export default function CreatePostPage() {
     formData.append("title", title);
     formData.append("description", description);
     formData.append("content", content);
-    formData.append("userId", "16"); // Replace with actual user ID
-    formData.append("isPublished", "true");
 
-    selectedTags.forEach((tag) => {
-      formData.append("tags", tag.value.toString());
-    });
+    formData.append("userId", "1"); // Replace with actual user ID
+    formData.append("isPublished", "true");
+    formData.append("tags", selectedTags.map((tag) => tag.value).join(","));
+
     if (cover) formData.append("file", cover);
 
-    try {
-      formData.forEach((value, key) => {
-        console.log(`${key}: ${value}`);
-      });
-      const response = await fetch(`http://localhost:8080/post/add`, {
+    try { formData.forEach((value, key) => {
+                console.log(`${key}: ${value}`);
+              });
+      const response = await fetch("http://localhost:8080/post/add", {
+
         method: "POST",
         body: formData,
       });
@@ -214,7 +217,8 @@ export default function CreatePostPage() {
                   options={tagOptions}
                   value={selectedTags}
                   onChange={(selected) => {
-                    console.log("Selected:", selected);
+
+
                     setSelectedTags(selected as { value: number; label: string }[]);
                     setErrors((prev) => ({ ...prev, tags: "" }));
                   }}
