@@ -1,12 +1,16 @@
 "use client";
 
+
 import { useState, useEffect } from "react";
 import { FaUpload } from "react-icons/fa";
 import Image from "next/image";
+
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
-import { Button } from "@/app/components/ui/button";
+import Image from "next/image";
 import Link from "next/link";
+
+
 import Select from "react-select";
 
 export default function CreatePostPage() {
@@ -104,6 +108,7 @@ export default function CreatePostPage() {
     formData.append("title", title);
     formData.append("description", description);
     formData.append("content", content);
+
     formData.append("userId", "1"); // Replace with actual user ID
     formData.append("isPublished", "true");
     formData.append("tags", selectedTags.map((tag) => tag.value).join(","));
@@ -114,6 +119,7 @@ export default function CreatePostPage() {
                 console.log(`${key}: ${value}`);
               });
       const response = await fetch("http://localhost:8080/post/add", {
+
         method: "POST",
         body: formData,
       });
@@ -141,11 +147,10 @@ export default function CreatePostPage() {
 
         {/* Ảnh bìa */}
         <div
-          className={`mb-4 border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition duration-300 ${
-            errors.cover
+          className={`mb-4 border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition duration-300 ${errors.cover
               ? "border-red-400 bg-red-50"
               : "border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50"
-          }`}
+            }`}
           onDrop={handleImageDrop}
           onDragOver={(e) => e.preventDefault()}
           onClick={handleUploadClick}
@@ -212,6 +217,8 @@ export default function CreatePostPage() {
                   options={tagOptions}
                   value={selectedTags}
                   onChange={(selected) => {
+
+
                     setSelectedTags(selected as { value: number; label: string }[]);
                     setErrors((prev) => ({ ...prev, tags: "" }));
                   }}
