@@ -3,6 +3,7 @@ package com.example.Blog.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.Blog.model.Tags;
@@ -15,11 +16,10 @@ public class TagsController {
     @Autowired
     private TagsRepository tagsRepository;
 
-
     @PostMapping("/add")
-    public String createTag(@RequestBody Tags tag) {
-        tagsRepository.save(tag);
-        return "Created tag successfully";
+    public ResponseEntity<?> addTag(@RequestBody Tags tag) {
+        Tags saved = tagsRepository.save(tag);
+        return ResponseEntity.ok(saved);
     }
 
     // Lấy tất cả tag

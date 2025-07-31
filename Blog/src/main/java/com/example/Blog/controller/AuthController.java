@@ -52,7 +52,7 @@ public class AuthController {
                         "email", user.getEmail(),
                         "admin", user.getAdmin()
                 ),
-               "Token ",jwtService.generateToken(user.getId(),user.getEmail(),user.getName(),user.getAdmin())
+               "Token",jwtService.generateToken(user.getId(),user.getEmail(),user.getName(),user.getAdmin())
         ));
     }
 

@@ -4,8 +4,16 @@ import { useEffect, useState } from "react";
 import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { jwtDecode } from "jwt-decode";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+interface DecodedToken {
+  email: string;
+  role: string;
+  banned: boolean;
+  exp: number;
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,18 +21,34 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
-  // ✅ Tự kiểm tra nếu đã login rồi
+  //  Kiểm tra nếu đã đăng nhập + token còn hạn
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      const user = JSON.parse(storedUser);
-      if (user?.banned) {
-        localStorage.removeItem("user");
-        return;
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = jwtDecode<DecodedToken>(token);
+        const now = Date.now();
+
+        if (decoded.exp * 1000 < now) {
+          localStorage.removeItem("token");
+          return;
+        }
+
+        if (decoded.banned) {
+          localStorage.removeItem("token");
+          return;
+        }
+
+        if (decoded.role === "ADMIN") {
+          router.push("/admin");
+        } else {
+          router.push("/");
+        }
+      } catch (err) {
+        localStorage.removeItem("token");
       }
-      user.admin ? router.push("/admin") : router.push("/");
     }
-  }, []);
+  }, [router]);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -35,11 +59,13 @@ export default function LoginPage() {
         password,
       });
 
+      const token = res.data.Token;
       const user = res.data.user;
-
       if (!user) {
-        throw new Error("Không thể lấy thông tin người dùng.");
+        throw new Error("Tài khoản chưa được đăng kí");
       }
+
+      const decoded = jwtDecode<DecodedToken>(token);
 
       if (user.banned) {
         toast.error("Tài khoản của bạn đã bị khóa.", {
@@ -49,7 +75,8 @@ export default function LoginPage() {
         return;
       }
 
-      localStorage.setItem("user", JSON.stringify(user));
+      // ✅ Lưu token
+      localStorage.setItem("token", token);
 
       toast.success("Đăng nhập thành công!", {
         position: "top-right",
@@ -57,7 +84,7 @@ export default function LoginPage() {
       });
 
       setTimeout(() => {
-        user.admin ? router.push("/admin") : router.push("/");
+        decoded.role === "ADMIN" ? router.push("/admin") : router.push("/");
       }, 1000);
     } catch (err: unknown) {
       const error = err as AxiosError<{ message: string }>;
@@ -72,9 +99,8 @@ export default function LoginPage() {
         autoClose: 3000,
       });
 
-      // ⚠️ Nếu bị 403 (banned), xóa thông tin cũ
       if (status === 403) {
-        localStorage.removeItem("user");
+        localStorage.removeItem("token");
       }
     }
   };
@@ -114,10 +140,7 @@ export default function LoginPage() {
 
             <form className="space-y-5" onSubmit={handleLogin}>
               <div>
-                <label
-                  htmlFor="email"
-                  className="text-sm font-medium text-gray-700"
-                >
+                <label htmlFor="email" className="text-sm font-medium text-gray-700">
                   Email
                 </label>
                 <input
@@ -132,10 +155,7 @@ export default function LoginPage() {
               </div>
 
               <div>
-                <label
-                  htmlFor="password"
-                  className="text-sm font-medium text-gray-700"
-                >
+                <label htmlFor="password" className="text-sm font-medium text-gray-700">
                   Mật khẩu
                 </label>
                 <input
@@ -150,9 +170,7 @@ export default function LoginPage() {
               </div>
 
               {errorMsg && (
-                <div className="text-red-500 text-sm font-medium">
-                  {errorMsg}
-                </div>
+                <div className="text-red-500 text-sm font-medium">{errorMsg}</div>
               )}
 
               <div className="flex items-center justify-between text-sm text-gray-600">
@@ -174,10 +192,7 @@ export default function LoginPage() {
 
               <p className="text-sm text-center text-gray-500 mt-6">
                 Chưa có tài khoản?{" "}
-                <Link
-                  href="/register"
-                  className="text-blue-600 hover:underline font-medium"
-                >
+                <Link href="/register" className="text-blue-600 hover:underline font-medium">
                   Đăng ký ngay
                 </Link>
               </p>
