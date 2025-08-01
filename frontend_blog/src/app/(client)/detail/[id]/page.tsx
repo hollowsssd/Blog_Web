@@ -2,8 +2,8 @@
 import Image from "next/image";
 import Footer from "@/app/components/ui/footer";
 import Header from "@/app/components/ui/header";
-import LikeButton from "@/app/components/ui/LikeButton";
-import CommentForm from "@/app/components/ui/CommentForm";
+import LikeWrapper from "@/app/components/ui/LikeWrapper";
+import CommentWrapper from "@/app/components/ui/CommentWrapper";
 
 type Params = {
   params: { id: string };
@@ -13,6 +13,7 @@ type Post = {
   id: number;
   title: string;
   content: string;
+  imageUrl: string;
   createdAt: string;
   user: {
     id: number;
@@ -47,9 +48,6 @@ export default async function PostDetailPage({ params }: Params) {
   if (!res.ok) {
     return <div>Post not found</div>;
   }
-
-  //user Id tạm thời
-  const userId = 1; // Id user đang đăng nhập (sẽ thay thế sau)
 
   //like
    const likeRes = await fetch(`http://localhost:8080/likes/count/${id}`, {
@@ -112,16 +110,18 @@ export default async function PostDetailPage({ params }: Params) {
         </div>
 
         {/* Thumbnail (optional) */}
-        <Image
-          src="data:image/jpeg;base64,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"
-          alt="Post Thumbnail"
-          width={800}
-          height={500}
-          className="rounded-xl mb-6 w-full object-cover"
-        />
+          {post.imageUrl && (
+            <Image
+              src={`http://localhost:8080/post/images/${post.imageUrl}`}
+              alt="Post Thumbnail"
+              width={800}
+              height={500}
+              className="rounded-xl mb-6 w-full object-cover"
+            />
+          )}
 
         {/* Like */}
-        <LikeButton postId={post.id} userId={userId} hasLiked={likeCount} />
+        <LikeWrapper postId={post.id} />
 
         {/* Content */}
         <article className="prose prose-lg max-w-none mb-10">
@@ -129,7 +129,7 @@ export default async function PostDetailPage({ params }: Params) {
         </article>
 
         {/* Comments Section */}
-        <CommentForm postId={post.id} userId={userId} />  {/* Replace 1 with real user ID when auth is done */}
+        <CommentWrapper postId={post.id} />
       </section>
 
       {/* Footer */}

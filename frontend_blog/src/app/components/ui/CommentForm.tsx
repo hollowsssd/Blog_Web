@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import LoginPrompt from "@/app/components/ui/loginPrompt";
+import { jwtDecode } from "jwt-decode";
 
 type Comment = {
   id: number;
@@ -14,12 +16,41 @@ type Comment = {
 
 type Props = {
   postId: number;
-  userId: number; // From session or fixed for now
+  userId?: number | null;
 };
 
-export default function CommentForm({ postId, userId }: Props) {
+interface DecodedToken {
+  id: number;
+  name: string;
+  email: string;
+  exp: number;
+}
+
+export default function CommentForm({ postId }: Props) {
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState<Comment[]>([]);
+  const [isDisabled, setIsDisabled] = useState(false);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [showPrompt, setShowPrompt] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const decoded: DecodedToken = jwtDecode(token);
+        const currentTime = Date.now() / 1000;
+
+        if (decoded.exp > currentTime) {
+          setUserId(decoded.id);
+        } else {
+          localStorage.removeItem('token');
+        }
+      } catch (err) {
+        console.error("Invalid token");
+        localStorage.removeItem('token');
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const fetchComments = async () => {
@@ -35,9 +66,17 @@ export default function CommentForm({ postId, userId }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!userId) {
+      setShowPrompt(true);
+      return;
+    }
+
     const res = await fetch('http://localhost:8080/comments', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+      },
       body: JSON.stringify({
         postId,
         userId,
@@ -49,8 +88,10 @@ export default function CommentForm({ postId, userId }: Props) {
       const newComment = await res.json();
       setComments((prev) => [...prev, newComment]);
       setCommentText('');
+      setIsDisabled(true);
+      setTimeout(() => setIsDisabled(false), 3000); // 5 seconds
     } else {
-      alert('Failed to post comment.');
+      alert("Đã có lỗi xảy ra khi gửi bình luận.");
     }
   };
 
@@ -68,9 +109,14 @@ export default function CommentForm({ postId, userId }: Props) {
         ></textarea>
         <button
           type="submit"
-          className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition"
+          disabled={isDisabled}
+          className={`mt-2 px-4 py-2 rounded-full transition text-white ${
+            isDisabled
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-blue-600 hover:bg-blue-700'
+          }`}
         >
-          Gửi bình luận
+          {isDisabled ? "Vui lòng chờ..." : "Gửi bình luận"}
         </button>
       </form>
 
@@ -92,6 +138,8 @@ export default function CommentForm({ postId, userId }: Props) {
           </li>
         )}
       </ul>
+
+      {showPrompt && <LoginPrompt onClose={() => setShowPrompt(false)} />}
     </section>
   );
 }
