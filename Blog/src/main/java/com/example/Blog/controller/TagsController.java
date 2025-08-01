@@ -34,4 +34,9 @@ public class TagsController {
         tagsRepository.deleteById(id);
         return "deleted tag";
     }
+    // Lấy 5 tags cho trang Article
+    @GetMapping("/top")
+    public List<Tags> getTopTags() {
+        return tagsRepository.findAll().stream().limit(10).toList();
+    }
 }

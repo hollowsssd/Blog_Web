@@ -13,58 +13,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import Footer from "@/app/components/ui/footer";
-
-const categories = ["All", "Fantasy", "NFT", "Abstract", "Anime", "Games", "Technology"];
-
-const posts = [
-  {
-    title: "An Extraordinary WebGL Has Been Released By Great China Scientists",
-    description: "Gucci brought video games to its app with a new section called Gucci Arcade...",
-    category: "Technology",
-    author: "Mohammad Reza",
-    date: "Jun 27, 2021",
-    image: "/images/post1.jpg",
-    avatar: "/images/author1.jpg",
-    featured: true,
-  },
-  {
-    title: "Simon Liozotte Take A Big Advance In The Last Tournament",
-    description: "Gucci brought video games to its app with a new section called Gucci Arcade...",
-    category: "Games",
-    author: "Albert Olsen",
-    date: "Jul 21, 2021",
-    image: "/images/post2.jpg",
-    avatar: "/images/author2.jpg",
-  },
-  {
-    title: "Nvidia Releases New Way Of Producing NFTs",
-    description: "Gucci brought video games to its app with a new section called Gucci Arcade...",
-    category: "NFT",
-    author: "Angelita Johnson",
-    date: "Jul 18, 2021",
-    image: "/images/post3.jpg",
-    avatar: "/images/author3.jpg",
-  },
-  {
-    title: "Score of DDPT Gran Prix 2022 Has Been Already Shared",
-    description: "Gucci brought video games to its app with a new section called Gucci Arcade...",
-    category: "Fantasy",
-    author: "Amanda Bjanson",
-    date: "Apr 15, 2021",
-    image: "/images/post4.jpg",
-    avatar: "/images/author4.jpg",
-  },
-  {
-    title: "New AI Breakthrough Revolutionizes Web Development",
-    description: "A groundbreaking AI tool has been unveiled, transforming the way we build websites...",
-    category: "Technology",
-    author: "John Doe",
-    date: "Jul 10, 2025",
-    image: "/images/post5.jpg",
-    avatar: "/images/author5.jpg",
-    featured: true,
-  },
-];
+import LikeWrapper from "@/app/components/ui/LikeWrapper";
 
 const heroImages = [
   "/images/hero1.jpg",
@@ -74,9 +23,13 @@ const heroImages = [
 ];
 
 export default function BlogPage() {
+  const [posts, setPosts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
   const [likedPosts, setLikedPosts] = useState<number[]>([]);
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [tags, setTags] = useState([]);
+
 
   const toggleLike = (index: number) => {
     setLikedPosts((prev) =>
@@ -91,9 +44,48 @@ export default function BlogPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const filteredPosts = posts.filter((post) =>
-    post.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    const fetchTopTags = async () => {
+      try {
+        const res = await fetch("http://localhost:8080/api/tags/top");
+        if (res.ok) {
+          const tags = await res.json();
+          setTags(tags); // assuming setTags is a useState hook
+        }
+      } catch (err) {
+        console.error("Failed to fetch tags:", err);
+      }
+    };
+
+    fetchTopTags();
+  }, []);
+
+  useEffect(() => {
+    fetch("http://localhost:8080/post")
+      .then((res) => res.json())
+      .then((data) => {
+        const formatted = data.map((post: any, index: number) => ({
+          id: post.id,
+          title: post.title,
+          description: post.description,
+          content: post.content,
+          category: post.tags?.[0]?.name || "Uncategorized",
+          author: post.user?.name || "Anonymous",
+          date: post.createdAt?.split("T")[0] || "N/A",
+          image: `http://localhost:8080/post/images/${post.imageUrl}`,
+          avatar: "/images/default-avatar.jpg",
+          featured: post.isPublished,
+        }));
+        setPosts(formatted);
+      })
+      .catch((err) => console.error("Failed to fetch posts", err));
+  }, []);
+
+    const filteredPosts = posts.filter((post) => {
+    const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = activeCategory === "All" || post.category === activeCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <main className="min-h-screen bg-white text-gray-900 px-6 md:px-16 lg:px-32 pb-20">
@@ -165,16 +157,24 @@ export default function BlogPage() {
       </section>
 
       {/* Categories */}
-      <div className="flex justify-center flex-wrap gap-3 px-6">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            className="bg-white text-sm px-4 py-2 rounded-full border border-gray-200 hover:bg-indigo-50 hover:text-indigo-700 transition-all shadow-sm"
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
+      <section className="mt-5 text-center">
+        <h3 className="text-xl font-semibold mb-3 text-gray-700">Chủ đề phổ biến</h3>
+        <div className="flex flex-wrap justify-center gap-3">
+          {["All", ...tags.map((t: any) => t.name)].map((tagName, index) => (
+            <button
+              key={index}
+              onClick={() => setActiveCategory(tagName)}
+              className={`px-4 py-1 text-sm rounded-full transition ${
+                activeCategory === tagName
+                  ? "bg-indigo-600 text-white"
+                  : "bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+              }`}
+            >
+              {tagName}
+            </button>
+          ))}
+        </div>
+      </section>
 
       {/* Featured Posts */}
       <section className="px-6 md:px-12 lg:px-24 py-12">
@@ -185,55 +185,61 @@ export default function BlogPage() {
           </span>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
-          {filteredPosts.filter((p) => p.featured).map((post, i) => (
-            <motion.div
-              key={i}
-              whileHover={{ scale: 1.03 }}
-              transition={{ duration: 0.4 }}
-              className="rounded-xl overflow-hidden bg-white shadow-lg hover:shadow-xl transition-all"
-            >
-              <Image
-                src="https://th.bing.com/th/id/OIP.HqKYj8JdYNZk0LdeYV1RrgHaFj?w=247&h=185&c=7&r=0&o=5&dpr=1.9&pid=1.7"
-                alt={post.title}
-                width={800}
-                height={500}
-                className="w-full h-64 object-cover"
-              />
-              <div className="p-6">
-                <p className="text-sm font-medium text-indigo-600 mb-2 flex items-center justify-between">
-                  {post.category}
-                  <button onClick={() => toggleLike(i)} className="text-red-500 ml-2">
-                    {likedPosts.includes(i) ? <FaHeart className="text-base" /> : <FaRegHeart className="text-base" />}
-                  </button>
-                </p>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">{post.title}</h3>
-                <p className="text-sm text-gray-600 mb-4 line-clamp-2">{post.description}</p>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Image
-                      src="https://www.drivenow.com.au/blog/wp-content/uploads/2018/07/hot-air.jpg"
-                      alt={post.author}
-                      width={30}
-                      height={30}
-                      className="rounded-full"
-                    />
-                    <span className="text-sm text-gray-500">
-                      {post.author} • {post.date}
-                    </span>
+        {filteredPosts.length === 0 ? (
+          <p className="text-gray-500 text-center">Không tìm thấy bài viết nào.</p>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-8">
+            {filteredPosts
+              .filter((p) => p.featured)
+              .map((post, i) => (
+                <motion.div
+                  key={i}
+                  whileHover={{ scale: 1.03 }}
+                  transition={{ duration: 0.4 }}
+                  className="rounded-xl overflow-hidden bg-white shadow-lg hover:shadow-xl transition-all"
+                >
+                  <Image
+                    src={post.image}
+                    alt={post.title}
+                    width={800}
+                    height={500}
+                    className="w-full h-64 object-cover"
+                  />
+                  <div className="p-6">
+                    <div className="text-sm font-medium text-indigo-600 mb-2 flex items-center justify-between">
+                      <span>{post.category}</span>
+                      <LikeWrapper postId={post.id} />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                      {post.title}
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                      {post.description}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Image
+                          src={post.avatar}
+                          alt={post.author}
+                          width={30}
+                          height={30}
+                          className="rounded-full"
+                        />
+                        <span className="text-sm text-gray-500">
+                          {post.author} • {post.date}
+                        </span>
+                      </div>
+                      <Link href={`/detail/${post.id}`}>
+                        <button className="text-blue-500 hover:underline">Đọc thêm</button>
+                      </Link>
+                    </div>
                   </div>
-                  <Link
-                    href={`/article/${post.title.replace(/\s+/g, '-').toLowerCase()}`}
-                    className="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition"
-                  >
-                    Đọc thêm
-                  </Link>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+                </motion.div>
+              ))}
+          </div>
+        )}
       </section>
+
       <Footer />
     </main>
   );

@@ -1,20 +1,47 @@
 "use client";
 
 import Image from "next/image";
-
-import { Button } from "@/app/components/ui/button";
-import Footer from "@/app/components/ui/footer"
-import { motion } from "framer-motion";
 import Link from "next/link";
-import Header from "@/app/components/ui/header"; 
+import { useEffect, useState } from "react";
+import { jwtDecode } from "jwt-decode";
+import { Button } from "@/app/components/ui/button";
+import Footer from "@/app/components/ui/footer";
+import Header from "@/app/components/ui/header";
+import { motion } from "framer-motion";
+import LoginPrompt from "@/app/components/ui/loginPrompt";
 
+type DecodedToken = {
+  id: number;
+  name: string;
+  email: string;
+  exp: number;
+};
 
 export default function Home() {
+  const [userId, setUserId] = useState<number | null>(null);
+  const [showPrompt, setShowPrompt] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded: DecodedToken = jwtDecode(token);
+        const currentTime = Date.now() / 1000;
+        if (decoded.exp > currentTime) {
+          setUserId(decoded.id);
+        } else {
+          localStorage.removeItem("token");
+        }
+      } catch (err) {
+        console.error("Invalid token");
+        localStorage.removeItem("token");
+      }
+    }
+  }, []);
+
   return (
     <main className="min-h-screen bg-white text-gray-900 px-6 md:px-16 lg:px-32 pb-20">
-      {/* Header */}
-     <Header/>
-   
+      <Header />
 
       {/* Hero Section */}
       <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden rounded-3xl shadow-2xl mb-24">
@@ -36,11 +63,23 @@ export default function Home() {
           <p className="text-sm md:text-base font-semibold text-gray-200 mb-6">
             Viết ra những điều đáng nhớ, lan tỏa giá trị đến cộng đồng.
           </p>
-          <Link href="/createpost">
-          <Button className=" font-semibold bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-full cursor-pointer">
-            Bắt đầu viết
-          </Button></Link>
+
+          {userId ? (
+            <Link href="/createpost">
+              <Button className="font-semibold bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-full cursor-pointer">
+                Bắt đầu viết
+              </Button>
+            </Link>
+          ) : (
+            <Button
+              className="font-semibold bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-full cursor-pointer"
+              onClick={() => setShowPrompt(true)}
+            >
+              Bắt đầu viết
+            </Button>
+          )}
         </motion.div>
+        {showPrompt && <LoginPrompt onClose={() => setShowPrompt(false)} />}
       </section>
 
       {/* Chủ đề nổi bật */}
@@ -82,12 +121,12 @@ export default function Home() {
               <div className="p-4 flex flex-col justify-between h-full">
                 <div>
                   <h4 className="font-semibold text-lg mb-2">{item.title}</h4>
-                  <p className="text-sm  text-gray-600">{item.desc}</p>
+                  <p className="text-sm text-gray-600">{item.desc}</p>
                 </div>
                 <div className="text-right mt-4">
                   <Link
                     href="/detail"
-                    className="text-xs font-semibold  text-blue-600 hover:underline"
+                    className="text-xs font-semibold text-blue-600 hover:underline"
                   >
                     Đọc thêm
                   </Link>
@@ -97,8 +136,8 @@ export default function Home() {
           ))}
         </div>
       </section>
-<Footer/>
-    
+
+      <Footer />
     </main>
   );
 }

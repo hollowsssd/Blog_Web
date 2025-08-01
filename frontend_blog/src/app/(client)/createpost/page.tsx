@@ -7,7 +7,8 @@ import Image from "next/image";
 
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
-import Image from "next/image";
+
+import { Button } from "@/app/components/ui/button";
 import Link from "next/link";
 
 
@@ -97,7 +98,7 @@ export default function CreatePostPage() {
     };
 
     fetchTags();
-  }, []);
+}, []);
 
 
   //Đăng bài viết
@@ -185,7 +186,7 @@ export default function CreatePostPage() {
                 }
               }}
               className="text-lg px-6 py-4 rounded-2xl shadow-sm w-full"
-            />
+/>
             {errors.title && <p className="text-sm text-red-600 mt-1">{errors.title}</p>}
           </div>
 

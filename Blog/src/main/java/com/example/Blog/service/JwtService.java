@@ -63,6 +63,11 @@ public class JwtService {
         return extractClaim(token, Claims::getSubject);
     }
 
+    public Integer extractId(String token) {
+        Claims claims = extractAllClaims(token);
+        return (Integer) claims.get("id");
+    }
+
     private <T> T extractClaim(String token, Function<Claims, T> claimResolver) {
         final Claims claims = extractAllClaims(token);
         return claimResolver.apply(claims);
