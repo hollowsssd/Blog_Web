@@ -29,72 +29,87 @@ export default function AddUserPage() {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const target = e.target as HTMLInputElement | HTMLSelectElement;
-    const { name, value, type } = target;
-    const checked = (target as HTMLInputElement).checked;
+    const { name, value, type } = e.target;
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox"
-        ? checked
-        : name === "banned"
-        ? value === "true"
-        : value,
-    }));
+    if (type === "checkbox") {
+      const target = e.target as HTMLInputElement; // ép kiểu rõ ràng
+      setFormData((prev) => ({
+        ...prev,
+        [name]: target.checked,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const validateEmail = (email: string) => /\S+@\S+\.\S+/.test(email);
   const validatePassword = (password: string) => password.length >= 6;
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!validateEmail(formData.email)) {
-      toast.error("Email không hợp lệ", { position: "top-right" });
-      return;
-    }
+  if (!validateEmail(formData.email)) {
+    toast.error("Email không hợp lệ", { position: "top-right" });
+    return;
+  }
 
-    if (!validatePassword(formData.password)) {
-      toast.error("Mật khẩu phải có ít nhất 6 ký tự", {
+  if (!validatePassword(formData.password)) {
+    toast.error("Mật khẩu phải có ít nhất 6 ký tự", {
+      position: "top-right",
+    });
+    return;
+  }
+
+  if (!formData.name.trim()) {
+    toast.error("Tên người dùng không được để trống", {
+      position: "top-right",
+    });
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem("token"); // 🟩 THÊM DÒNG NÀY
+
+    if (!token) {
+      toast.error("Bạn chưa đăng nhập hoặc token không tồn tại", {
         position: "top-right",
       });
       return;
     }
 
-    if (!formData.name.trim()) {
-      toast.error("Tên người dùng không được để trống", {
-        position: "top-right",
-      });
-      return;
-    }
-
-    try {
-      const res = await axios.post(
-        "http://localhost:8080/api/user/add",
-        formData,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-
-      toast.success("Thêm người dùng thành công!", { position: "top-right" });
-
-      setTimeout(() => {
-        router.push("/list/users");
-      }, 1500);
-    } catch (err) {
-      const error = err as AxiosError<{ message?: string }>;
-      const errorMessage = error.response?.data?.message;
-
-      if (errorMessage?.includes("Email")) {
-        toast.error("Email đã tồn tại!", { position: "top-right" });
-      } else {
-        toast.error(errorMessage || "Lỗi không xác định!", {
-          position: "top-right",
-        });
+    const res = await axios.post(
+      "http://localhost:8080/api/user/add",
+      formData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       }
+    );
+
+    toast.success("Thêm người dùng thành công!", { position: "top-right" });
+
+    setTimeout(() => {
+      router.push("/list/users");
+    }, 1500);
+  } catch (err) {
+    const error = err as AxiosError<{ message?: string }>;
+    const errorMessage = error.response?.data?.message;
+
+    if (errorMessage?.includes("Email")) {
+      toast.error("Email đã tồn tại!", { position: "top-right" });
+    } else {
+      toast.error(errorMessage || "Lỗi không xác định!", {
+        position: "top-right",
+      });
     }
-  };
+  }
+};
+
 
   return (
     <>
@@ -164,12 +179,12 @@ export default function AddUserPage() {
             </label>
           </div>
 
-          {/* Admin Checkbox */}
-        <div>
+          {/* Admin Select */}
+          <div>
             <label className="text-sm text-gray-600 mb-1 block">Vai trò</label>
             <select
               name="admin"
-              value={formData.admin ? "Admin" : "User"}
+              value={formData.admin ? "1" : "0"}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >

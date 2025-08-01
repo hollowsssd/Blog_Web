@@ -1,12 +1,12 @@
 import Menu from "@/app/components/ui/menu";
 import Navbar from "@/app/components/ui/navbar";
+import "@/app/globals.css";
 import { Metadata } from "next";
 import Link from "next/link";
-import "@/app/globals.css";
 
 export const metadata: Metadata = {
-  title: "Book Admin",
-  description: "Next.js Book Admin System",
+  title: "Blog Admin",
+  description: "Next.js Blog Admin System",
 };
 
 

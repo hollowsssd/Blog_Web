@@ -66,6 +66,11 @@ public class JwtService {
     public Integer extractId(String token) {
         Claims claims = extractAllClaims(token);
         return (Integer) claims.get("id");
+      
+    public Boolean extractAdmin(String token) {
+
+        return extractClaim(token, Claims -> (Boolean) Claims.get("admin"));
+
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimResolver) {
@@ -80,6 +85,8 @@ public class JwtService {
                 .parseSignedClaims(token)
                 .getPayload();
     }
+
+
 
     public boolean validateToken(String token, UserDetails userDetails) {
         final String userName = extract(token);

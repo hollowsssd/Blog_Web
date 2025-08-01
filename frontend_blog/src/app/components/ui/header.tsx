@@ -1,20 +1,20 @@
 "use client";
 
+import { jwtDecode } from "jwt-decode";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LogOut } from "lucide-react";
-import { jwtDecode } from "jwt-decode";
 
 interface DecodedToken {
   name: string;
   email: string;
+  admin:boolean;
   exp: number;
 }
 
 export default function Header() {
   const pathname = usePathname();
-  const [user, setUser] = useState<{ name: string; email: string } | null>(
+  const [user, setUser] = useState<{ name: string; email: string ; admin : boolean} | null>(
     null
   );
 
@@ -28,7 +28,7 @@ export default function Header() {
         const currentTime = Date.now() / 1000;
 
         if (decoded.exp > currentTime) {
-          setUser({ name: decoded.name, email: decoded.email });
+          setUser({ name: decoded.name, email: decoded.email, admin:decoded.admin});
         } else {
           localStorage.removeItem("token");
           setUser(null);
@@ -60,29 +60,26 @@ export default function Header() {
         <nav className="flex flex-wrap justify-center gap-6 text-sm font-semibold text-gray-900">
           <Link
             href="/"
-            className={`transition ${
-              isActive("/") ? "text-blue-600 underline" : "hover:text-blue-600"
-            }`}
+            className={`transition ${isActive("/") ? "text-blue-600 underline" : "hover:text-blue-600"
+              }`}
           >
             Trang chủ
           </Link>
           <Link
             href="/article"
-            className={`transition ${
-              isActive("/article")
-                ? "text-blue-600 underline"
-                : "hover:text-blue-600"
-            }`}
+            className={`transition ${isActive("/article")
+              ? "text-blue-600 underline"
+              : "hover:text-blue-600"
+              }`}
           >
             Bài viết
           </Link>
           <Link
             href="/about"
-            className={`transition ${
-              isActive("/about")
-                ? "text-blue-600 underline"
-                : "hover:text-blue-600"
-            }`}
+            className={`transition ${isActive("/about")
+              ? "text-blue-600 underline"
+              : "hover:text-blue-600"
+              }`}
           >
             Giới thiệu
           </Link>
@@ -105,9 +102,16 @@ export default function Header() {
                 tabIndex={0}
                 className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
               >
+                {user.admin == true && <li><div>
+                  <img src="/images/dashboard.png" width={19} height={19} />
+                  <Link href={"/admin"}>
+                    Dashboard
+                  </Link>
+                </div>
+                </li>}
                 <li>
                   <div>
-                    <img src="/images/profile.jpg" width={19} height={19} />
+                    <img src="/images/prf.jpg" width={19} height={19} />
                     <a className="justify-between" href={"/profile"}>
                       Hồ sơ
                     </a>
