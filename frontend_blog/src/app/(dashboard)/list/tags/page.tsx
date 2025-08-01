@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { FaPlus, FaTrash } from "react-icons/fa";
 import axios from "axios";
+import { useEffect, useState } from "react";
+import { FaPlus, FaTrash } from "react-icons/fa";
 
 interface Category {
   id: number;
@@ -23,21 +23,9 @@ export default function AdminCategoryPage() {
   // Gọi API lấy danh sách chủ đề khi có token
   useEffect(() => {
     if (!token) return;
-
     axios
-      .get(`${process.env.NEXT_PUBLIC_API_HOST}/api/tags`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((res) => {
-        // Kiểm tra dữ liệu trả về có hợp lệ không
-        if (Array.isArray(res.data)) {
-          setCategories(res.data);
-        } else {
-          console.error("API trả về không phải mảng");
-        }
-      })
+      .get(`${process.env.NEXT_PUBLIC_DOMAIN}/api/tags`)
+      .then((res) => setCategories(res.data))
       .catch((err) => console.error("Lỗi khi tải chủ đề:", err));
   }, [token]);
 
@@ -47,7 +35,7 @@ export default function AdminCategoryPage() {
     if (trimmed && !categories.some((cat) => cat.name === trimmed)) {
       axios
         .post(
-          `${process.env.NEXT_PUBLIC_API_HOST}/api/tags/add`,
+          `${process.env.NEXT_PUBLIC_DOMAIN}/api/tags/add`,
           { name: trimmed },
           {
             headers: {
@@ -72,7 +60,7 @@ export default function AdminCategoryPage() {
     const confirmDelete = window.confirm("Bạn có chắc muốn xoá chủ đề này?");
     if (confirmDelete) {
       axios
-        .delete(`${process.env.NEXT_PUBLIC_API_HOST}/api/tags/delete/${id}`, {
+        .delete(`${process.env.NEXT_PUBLIC_DOMAIN}/api/tags/delete/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

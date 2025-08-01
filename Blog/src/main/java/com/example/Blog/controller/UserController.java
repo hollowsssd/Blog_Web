@@ -39,6 +39,10 @@ public class UserController {
     public List<Users> getAllUsers() {
         return usersService.getAllUsers();
     }
+    @GetMapping("/chart")
+    public List<Map<String, Object>> getUsersChart() {
+        return userRepository.getUsersByMonth();
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserById(@PathVariable Integer id) {

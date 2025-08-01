@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import axios, { AxiosError } from "axios";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { Eye, Pencil, Trash2, Ban } from "lucide-react";
+import { Ban, Eye, Pencil, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent } from "@/app/components/ui/card";
@@ -24,106 +24,135 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState("");
+  const [token, setToken] = useState<string | null>(null);
 
+  // Load token 1 lần duy nhất
   useEffect(() => {
-    fetchUsers();
-  }, []);
-  
-    const token = "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ1c2VyQGdtYWlsLmNvbSIsIm5hbWUiOiJuYW0iLCJhZG1pbiI6ZmFsc2UsImlkIjoxMCwiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSIsImlhdCI6MTc1MzkzNjIwMiwiZXhwIjoxNzU0MDIyNjAyfQ.jl8J1VABf6LeU8q7xwxIDIpOPNmaflK-2YaRXuYhQiQIt6HKuNS30i4ZPf6xWLtx"; // hoặc từ context, cookie, etc.
+    const storedToken =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-  const fetchUsers = async () => {
+    if (!storedToken) {
+      toast.error("Bạn chưa đăng nhập.");
+      setLoading(false);
+      return;
+    }
+
+    setToken(storedToken);
+  }, []);
+
+  const fetchUsers = async (keyword?: string) => {
+    if (!token) return;
+
     setLoading(true);
+    setError("");
+
     try {
-      const res = await axios.get("http://localhost:8080/api/user", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const url = keyword
+        ? `${process.env.NEXT_PUBLIC_API_HOST}/api/user/search?keyword=${keyword}`
+        : `${process.env.NEXT_PUBLIC_API_HOST}/api/user`;
+
+      const res = await axios.get(url, {
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      const data = res.data as User[];
-      const filtered = data.filter(
-        (u) => typeof u.name === "string" && typeof u.email === "string"
-      );
-      setUsers(filtered);
+      if (Array.isArray(res.data)) {
+        setUsers(res.data);
+        if (keyword && res.data.length === 0) {
+          toast.info("Không tìm thấy người dùng nào.");
+        }
+      } else {
+        setUsers([]);
+        toast.warn("Dữ liệu trả về không hợp lệ.");
+      }
     } catch (err) {
-      setError("Không thể tải danh sách người dùng.");
-      console.error(err);
+      const error = err as AxiosError;
+      if (error.response?.status === 401) {
+        toast.error("Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.");
+      } else {
+        toast.error("Không thể tải danh sách người dùng.");
+      }
+      setError("Lỗi tải dữ liệu.");
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredUsers = users.filter((u) =>
-    u.name.toLowerCase().includes(search.toLowerCase())
-  );
+  useEffect(() => {
+    if (token) {
+      fetchUsers();
+    }
+  }, [token]);
 
-  const handleBan = async (userId: number) => {
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      if (token) {
+        search.trim() ? fetchUsers(search.trim()) : fetchUsers();
+      }
+    }, 400);
+    return () => clearTimeout(delay);
+  }, [search, token]);
+
+  const handleBanToggle = async (userId: number) => {
     const user = users.find((u) => u.id === userId);
-    if (!user) return;
+    if (!user || !token) return;
 
     try {
-      const apiUrl = user.banned
-        ? `http://localhost:8080/api/user/unban/${userId}`
-        : `http://localhost:8080/api/user/ban/${userId}`;
+      const url = user.banned
+        ? `${process.env.NEXT_PUBLIC_API_HOST}/api/user/unban/${userId}`
+        : `${process.env.NEXT_PUBLIC_API_HOST}/api/user/ban/${userId}`;
 
-      const res = await axios.put(apiUrl, 
+      const res = await axios.put(
+        url,
         {},
-        {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
       toast.success(res.data.message || "Cập nhật trạng thái thành công!");
-
       setUsers((prev) =>
-        prev.map((u) => (u.id === userId ? { ...u, banned: !user.banned } : u))
+        prev.map((u) => (u.id === userId ? { ...u, banned: !u.banned } : u))
       );
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        toast.error(
-          error.response?.data?.message ||
-            "Đã xảy ra lỗi khi cập nhật trạng thái."
-        );
-      } else {
-        toast.error("Lỗi không xác định.");
-      }
+    } catch {
+      toast.error("Lỗi khi cập nhật trạng thái người dùng.");
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xoá người dùng này?")) return;
+    if (!token || !confirm("Bạn có chắc chắn muốn xoá người dùng này?")) return;
 
     try {
-      const res = await axios.delete(`http://localhost:8080/api/user/${id}`);
-      setUsers((prev) => prev.filter((user) => user.id !== id));
-      toast.success("🗑️ Xoá người dùng thành công!");
-    } catch (err) {
-      const error = err as AxiosError<{ message: string }>;
-      toast.error(error.response?.data?.message || "Xảy ra lỗi khi xoá.");
+      await axios.delete(
+        `${process.env.NEXT_PUBLIC_API_HOST}/api/user/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      toast.success("🗑️ Đã xoá người dùng.");
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+    } catch {
+      toast.error("Xảy ra lỗi khi xoá người dùng.");
     }
   };
 
   return (
-    <main className="min-h-screen bg-[#f7fafd] px-6 py-10">
+    <main className="min-h-screen bg-[#f9fafb] px-6 py-10">
       <ToastContainer />
       <div className="max-w-7xl mx-auto">
         <header className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-6">
           <div>
-            <h1 className="text-4xl font-bold text-gray-800 mb-1">
+            <h1 className="text-3xl font-bold text-gray-800">
               📋 Quản lý người dùng
             </h1>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
             <Input
-              placeholder="🔍 Tìm kiếm theo tên..."
+              placeholder="🔍 Tìm kiếm người dùng..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="rounded-full w-full sm:w-64"
             />
             <Link href="/list/users/createuser">
-              <Button className="rounded-full bg-blue-600 hover:bg-blue-700 text-white font-medium px-6">
+              <Button className="rounded-full bg-blue-600 hover:bg-blue-700 text-white px-6">
                 + Thêm người dùng
               </Button>
             </Link>
@@ -136,31 +165,29 @@ export default function AdminUsersPage() {
           <p className="text-red-500">{error}</p>
         ) : (
           <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredUsers.map((user) => (
+            {users.map((user) => (
               <Card
                 key={user.id}
-                className="p-4 shadow-sm border hover:shadow-md transition rounded-2xl bg-white"
+                className="p-4 border rounded-2xl shadow hover:shadow-md bg-white transition"
               >
                 <CardContent className="p-0">
                   <div className="flex items-center gap-4 mb-4">
                     <Image
                       src={user.avatar || "/images/avatar.png"}
-                      alt={user.name}
+                      alt={user.name || "avatar người dùng"}
                       width={48}
                       height={48}
-                      className="rounded-full object-cover border"
+                      className="rounded-full border object-cover"
                     />
                     <div>
-                      <h2 className="text-lg font-semibold text-gray-800">
-                        {user.name}
-                      </h2>
+                      <h2 className="text-lg font-semibold text-gray-800">{user.name}</h2>
                       <p className="text-sm text-gray-500">{user.email}</p>
                       <p
                         className={`text-sm font-medium ${
                           user.banned ? "text-red-500" : "text-green-600"
                         }`}
                       >
-                        {user.banned ? "🚫 Đã bị cấm" : "✅ Hoạt động"}
+                        {user.banned ? "🚫 Bị cấm" : "✅ Đang hoạt động"}
                       </p>
                     </div>
                   </div>
@@ -182,8 +209,8 @@ export default function AdminUsersPage() {
                       <Trash2 className="w-4 h-4" />
                     </IconButton>
                     <IconButton
-                      title={user.banned ? "Gỡ cấm" : "Cấm người dùng"}
-                      onClick={() => handleBan(user.id)}
+                      title={user.banned ? "Gỡ cấm" : "Cấm"}
+                      onClick={() => handleBanToggle(user.id)}
                       className={
                         user.banned
                           ? "hover:text-green-600"

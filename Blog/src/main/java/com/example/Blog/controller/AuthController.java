@@ -5,9 +5,10 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -40,7 +41,7 @@ public class AuthController {
         }
 
         // Kiểm tra nếu bị ban
-        if (user.getBanned() == true ) {
+        if (user.getBanned() == true) {
             return ResponseEntity.status(403).body(Map.of("message", "Tài khoản của bạn đã bị cấm."));
         }
 
@@ -50,13 +51,10 @@ public class AuthController {
                         "id", user.getId(),
                         "name", user.getName(),
                         "email", user.getEmail(),
-                        "admin", user.getAdmin()
-                ),
-               "Token",jwtService.generateToken(user.getId(),user.getEmail(),user.getName(),user.getAdmin())
-        ));
+                        "admin", user.getAdmin()),
+                "Token", jwtService.generateToken(user.getId(), user.getEmail(), user.getName(), user.getAdmin())));
     }
 
-    
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> payload) {
         String name = payload.get("name");
@@ -75,4 +73,11 @@ public class AuthController {
                         "name", newUser.getName(),
                         "email", newUser.getEmail())));
     }
+
+    @GetMapping("/extract")
+    public Boolean extract(@RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer ", "");
+        return jwtService.extractAdmin(token);
+    }
+
 }

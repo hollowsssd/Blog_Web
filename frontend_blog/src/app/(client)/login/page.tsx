@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import axios, { AxiosError } from "axios";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { jwtDecode } from "jwt-decode";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Cookies from "universal-cookie";
 
 interface DecodedToken {
   email: string;
-  role: string;
+  admin: Boolean;
   banned: boolean;
   exp: number;
 }
@@ -39,7 +40,7 @@ export default function LoginPage() {
           return;
         }
 
-        if (decoded.role === "ADMIN") {
+        if (decoded.admin === true) {
           router.push("/admin");
         } else {
           router.push("/");
@@ -59,8 +60,12 @@ export default function LoginPage() {
         password,
       });
 
+
       const token = res.data.Token;
       const user = res.data.user;
+
+
+
       if (!user) {
         throw new Error("Tài khoản chưa được đăng kí");
       }
@@ -75,8 +80,16 @@ export default function LoginPage() {
         return;
       }
 
-      // ✅ Lưu token
       localStorage.setItem("token", token);
+
+      const cookies = new Cookies();
+      cookies.set("token", token, {
+        path: "/",
+        secure: false,
+        httpOnly: false,
+        maxAge: 86400,
+      });
+      
 
       toast.success("Đăng nhập thành công!", {
         position: "top-right",
@@ -84,7 +97,7 @@ export default function LoginPage() {
       });
 
       setTimeout(() => {
-        decoded.role === "ADMIN" ? router.push("/admin") : router.push("/");
+        decoded.admin === true ? router.push("/admin") : router.push("/");
       }, 1000);
     } catch (err: unknown) {
       const error = err as AxiosError<{ message: string }>;
