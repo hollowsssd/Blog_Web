@@ -161,7 +161,7 @@ export default function LoginPage() {
                   id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="email"
+                  placeholder="email@example.com"
                   className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
                   required
                 />
@@ -176,24 +176,17 @@ export default function LoginPage() {
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="password"
+                  placeholder="••••••••"
                   className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
                   required
                 />
               </div>
 
-              {errorMsg && (
-                <div className="text-red-500 text-sm font-medium">{errorMsg}</div>
-              )}
+            
 
               <div className="flex items-center justify-between text-sm text-gray-600">
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" className="rounded border-gray-300" />
-                  Nhớ đăng nhập
-                </label>
-                <Link href="#" className="text-blue-500 hover:underline">
-                  Quên mật khẩu?
-                </Link>
+            
+                
               </div>
 
               <button

@@ -1,9 +1,9 @@
 "use client";
 
 
-import { useState, useEffect } from "react";
-import { FaUpload } from "react-icons/fa";
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import { FaUpload } from "react-icons/fa";
 
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
@@ -129,8 +129,8 @@ export default function CreatePostPage() {
       // Redirect to post detail page
       router.push(`/detail/${createdPost.id}`);
     } catch (error) {
-      console.error("❌ Lỗi khi gửi bài viết:", error);
-      alert("❌ Đã xảy ra lỗi khi gửi bài viết.");
+      console.error("Lỗi khi gửi bài viết:", error);
+      alert("Đã xảy ra lỗi khi gửi bài viết.");
     }
   };
 

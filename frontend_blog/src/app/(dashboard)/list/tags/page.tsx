@@ -24,7 +24,7 @@ export default function AdminCategoryPage() {
   useEffect(() => {
     if (!token) return;
     axios
-      .get(`${process.env.NEXT_PUBLIC_DOMAIN}/api/tags`)
+      .get(`${process.env.NEXT_PUBLIC_API_HOST}/api/tags`)
       .then((res) => setCategories(res.data))
       .catch((err) => console.error("Lỗi khi tải chủ đề:", err));
   }, [token]);
@@ -35,7 +35,7 @@ export default function AdminCategoryPage() {
     if (trimmed && !categories.some((cat) => cat.name === trimmed)) {
       axios
         .post(
-          `${process.env.NEXT_PUBLIC_DOMAIN}/api/tags/add`,
+          `${process.env.NEXT_PUBLIC_API_HOST}/api/tags/add`,
           { name: trimmed },
           {
             headers: {
@@ -60,7 +60,7 @@ export default function AdminCategoryPage() {
     const confirmDelete = window.confirm("Bạn có chắc muốn xoá chủ đề này?");
     if (confirmDelete) {
       axios
-        .delete(`${process.env.NEXT_PUBLIC_DOMAIN}/api/tags/delete/${id}`, {
+        .delete(`${process.env.NEXT_PUBLIC_API_HOST}/api/tags/delete/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

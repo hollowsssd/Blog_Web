@@ -35,19 +35,19 @@ public class JwtService {
 
     }
 
-    public String generateToken(Integer id, String email, String name, boolean admin) {
-
+    public String generateToken(Integer id, String email, String name, boolean admin, String createdAt) {
+        
         Map<String, Object> claim = new HashMap<>();
         claim.put("id", id);
-        claim.put("email", email);
         claim.put("name", name);
         claim.put("admin", admin);
+        claim.put("createdAt", createdAt);
         return Jwts.builder()
                 .claims()
                 .subject(email)
                 .add(claim)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60* 24 ))
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
                 .and()
                 .signWith(getKey())
                 .compact();
@@ -86,8 +86,6 @@ public class JwtService {
                 .parseSignedClaims(token)
                 .getPayload();
     }
-
-
 
     public boolean validateToken(String token, UserDetails userDetails) {
         final String userName = extract(token);

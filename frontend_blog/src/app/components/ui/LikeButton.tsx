@@ -1,13 +1,18 @@
 'use client';
 
+
 import { useState, useEffect } from 'react';
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import axios from 'axios';
+
 import LoginPrompt from "@/app/components/ui/loginPrompt";
+import axios from "axios";
+import { useEffect, useState } from 'react';
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 
 type Props = {
   postId: number;
-  userId?: number;
+  userId?: number | null; // Make optional
 };
 
 export default function LikeButton({ postId, userId }: Props) {
@@ -31,6 +36,7 @@ export default function LikeButton({ postId, userId }: Props) {
   };
 
   useEffect(() => {
+
     // Fetch like count
     axios.get(`http://localhost:8080/likes/count/${postId}`)
       .then(res => setLikes(res.data))
@@ -38,6 +44,7 @@ export default function LikeButton({ postId, userId }: Props) {
 
     // Check if user liked the post
     if (userId) {
+
       const token = getTokenFromCookie();
 
       axios.get(`http://localhost:8080/likes/check`, {
@@ -46,7 +53,8 @@ export default function LikeButton({ postId, userId }: Props) {
           Authorization: `Bearer ${token ?? ""}`,
         },
       })
-        .then(res => setLiked(res.data))
+        .then(res => setLiked(res.data)
+     
         .catch(() => setLiked(false));
     }
   }, [postId, userId]);
@@ -73,6 +81,7 @@ export default function LikeButton({ postId, userId }: Props) {
         }
       );
 
+
       const newLiked = !liked;
       setLiked(newLiked);
       setLikes((prev) => (newLiked ? prev + 1 : prev - 1));
@@ -89,18 +98,30 @@ export default function LikeButton({ postId, userId }: Props) {
 
   return (
     <div className="mb-10">
-      <button
-        onClick={handleLike}
-        disabled={loading}
-        className="flex items-center gap-2 text-red-500 hover:scale-105 transition"
-      >
-        {liked ? <FaHeart /> : <FaRegHeart />}
-        <span className="text-sm">
-          {liked ? "Đã yêu thích" : "Yêu thích"}
-        </span>
-      </button>
-      <span className="text-sm text-gray-600">{likes} lượt yêu thích</span>
-      {showPrompt && <LoginPrompt onClose={() => setShowPrompt(false)} />}
+      {userId ? (
+        <>
+          <button
+            onClick={handleLike}
+            disabled={loading}
+            className="flex items-center gap-2 text-red-500 hover:scale-105 transition"
+          >
+            {liked ? <FaHeart /> : <FaRegHeart />}
+            <span className="text-sm">
+              {liked ? "Đã yêu thích" : "Yêu thích"}
+            </span>
+          </button>
+          <span className="text-sm text-gray-600">{likes} lượt yêu thích</span>
+          {showPrompt && <LoginPrompt onClose={() => setShowPrompt(false)} />}
+        </>
+      ) : (
+        <>
+          <div className="flex items-center gap-2 flex-row-reverse">
+            <span>{likes}</span>
+            <FaHeart className="text-red-500" />
+          </div>
+
+        </>
+      )}
     </div>
   );
 }

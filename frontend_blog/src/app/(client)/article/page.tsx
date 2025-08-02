@@ -1,13 +1,18 @@
 "use client";
 
+import Footer from "@/app/components/ui/footer";
+import Header from "@/app/components/ui/header";
+import LikeWrapper from "@/app/components/ui/LikeWrapper";
+import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import {
-  FaSearch,
   FaChevronLeft,
   FaChevronRight,
-  FaHeart,
-  FaRegHeart,
+  FaSearch
 } from "react-icons/fa";
+
 import Header from "@/app/components/ui/header";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,6 +20,7 @@ import { useState, useEffect } from "react";
 import Footer from "@/app/components/ui/footer";
 import LikeWrapper from "@/app/components/ui/LikeWrapper";
 import axios from "axios";
+
 
 const heroImages = [
   "/images/hero1.jpg",
@@ -48,8 +54,10 @@ export default function BlogPage() {
   useEffect(() => {
     const fetchTopTags = async () => {
       try {
+
         const res = await axios.get("http://localhost:8080/api/tags/top");
         setTags(res.data); // no need to call .json()
+
       } catch (err) {
         console.error("Failed to fetch tags:", err);
       }
@@ -72,7 +80,7 @@ export default function BlogPage() {
           author: post.user?.name || "Anonymous",
           date: post.createdAt?.split("T")[0] || "N/A",
           image: `http://localhost:8080/post/images/${post.imageUrl}`,
-          avatar: "/images/default-avatar.jpg",
+          avatar: "/images/avatar.png",
           featured: post.isPublished,
         }));
         setPosts(formatted);
@@ -183,7 +191,7 @@ export default function BlogPage() {
       {/* Featured Posts */}
       <section className="px-6 md:px-12 lg:px-24 py-12">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-bold text-gray-800">Bài viết nổi bật</h2>
+          <h2 className="text-2xl font-bold text-gray-800">Bài viết </h2>
           <span className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full">
             Top Picks
           </span>
