@@ -1,5 +1,6 @@
 package com.example.Blog.controller;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,9 @@ public class AuthController {
             return ResponseEntity.status(403).body(Map.of("message", "Tài khoản của bạn đã bị cấm."));
         }
 
+        LocalDateTime createdAt = user.getCreatedAt();
+        String createdAtStr = createdAt.toString();
+
         return ResponseEntity.ok(Map.of(
                 "message", "Đăng nhập thành công!",
                 "user", Map.of(
@@ -52,7 +56,7 @@ public class AuthController {
                         "name", user.getName(),
                         "email", user.getEmail(),
                         "admin", user.getAdmin()),
-                "Token", jwtService.generateToken(user.getId(), user.getEmail(), user.getName(), user.getAdmin())));
+                "Token", jwtService.generateToken(user.getId(), user.getEmail(), user.getName(), user.getAdmin(),createdAtStr)));
     }
 
     @PostMapping("/register")

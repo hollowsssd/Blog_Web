@@ -1,18 +1,18 @@
 "use client";
 
-import { useState  } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { FaUpload } from "react-icons/fa";
-import Image from "next/image";
+import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
-import { Button } from "@/app/components/ui/button";
+import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { FaUpload } from "react-icons/fa";
 
 export default function EditPostPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // 👇 giả sử dữ liệu bài viết được truyền qua query
+  // giả sử dữ liệu bài viết được truyền qua query
   const initialPost = {
     title: searchParams.get("title") || "",
     description: searchParams.get("description") || "",
@@ -78,7 +78,7 @@ export default function EditPostPage() {
   const handleSubmit = () => {
     if (!validate()) return;
 
-    // 👇 Gửi API cập nhật ở đây...
+    //  Gửi API cập nhật ở đây...
     console.log("📝 Bài viết được cập nhật:", {
       title,
       description,
@@ -87,9 +87,9 @@ export default function EditPostPage() {
       cover,
     });
 
-    alert("✅ Bài viết đã được cập nhật thành công!");
+    alert(" Bài viết đã được cập nhật thành công!");
 
-    // ⏳ Chuyển về danh sách sau 1s
+    //  Chuyển về danh sách sau 1s
     setTimeout(() => {
       router.push("/list/posts");
     }, 1000);

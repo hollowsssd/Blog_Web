@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { jwtDecode } from "jwt-decode";
-import { FaHeart, FaRegHeart } from "react-icons/fa";
 import LikeButton from "@/app/components/ui/LikeButton";
+import { jwtDecode } from "jwt-decode";
+import { useEffect, useState } from "react";
 
 type JwtPayload = {
   id: number;
@@ -20,7 +19,7 @@ export default function LikeWrapper({ postId }: { postId: number }) {
 
     if (token) {
       try {
-        const decoded: DecodedToken = jwtDecode(token);
+        const decoded: JwtPayload = jwtDecode(token);
         const currentTime = Date.now() / 1000;
         if (decoded.exp > currentTime) {
           setUserId(decoded.id);

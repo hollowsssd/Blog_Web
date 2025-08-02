@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface DecodedToken {
+  id: number;
   name: string;
   email: string;
   admin:boolean;
@@ -14,7 +15,7 @@ interface DecodedToken {
 
 export default function Header() {
   const pathname = usePathname();
-  const [user, setUser] = useState<{ name: string; email: string ; admin : boolean} | null>(
+  const [user, setUser] = useState<{ id : number,name: string; email: string ; admin : boolean} | null>(
     null
   );
 
@@ -28,7 +29,7 @@ export default function Header() {
         const currentTime = Date.now() / 1000;
 
         if (decoded.exp > currentTime) {
-          setUser({ name: decoded.name, email: decoded.email, admin:decoded.admin});
+          setUser({id : decoded.id, name: decoded.name, email: decoded.email, admin:decoded.admin});
         } else {
           localStorage.removeItem("token");
           setUser(null);
@@ -112,7 +113,7 @@ export default function Header() {
                 <li>
                   <div>
                     <img src="/images/prf.jpg" width={19} height={19} />
-                    <a className="justify-between" href={"/profile"}>
+                    <a className="justify-between" href={`/profile/${user.id}`}>
                       Hồ sơ
                     </a>
                   </div>

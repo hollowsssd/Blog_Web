@@ -1,8 +1,8 @@
 "use client";
 
+import Footer from "@/app/components/ui/footer";
+import Header from "@/app/components/ui/header";
 import Image from "next/image";
-import Footer from "@/app/components/ui/footer"
-import Header from "@/app/components/ui/header"; 
 
 export default function AboutPage() {
   return (    <main className="min-h-screen bg-white text-gray-900 px-6 md:px-16 lg:px-32 pb-20">
@@ -36,23 +36,31 @@ export default function AboutPage() {
         </h2>
         <div className="space-y-8 border-l-4 border-blue-200 pl-6">
           <div>
-            <h4 className="font-semibold text-blue-500">2023</h4>
+            <h4 className="font-semibold text-blue-500">Nguyễn Công Minh</h4>
             <p className="text-sm text-gray-600">
-              4TL Blog được thành lập với mong muốn tạo ra một sân chơi viết bài cho các bạn sinh viên và người đi làm.
+             Thiết kế giao diện và xây dựng chức năng
+            </p>
+          </div>
+           <div>
+            <h4 className="font-semibold text-blue-500">Phạm Đông Duy</h4>
+            <p className="text-sm text-gray-600">
+             Thiết kế giao diện và xây dựng chức năng
             </p>
           </div>
           <div>
-            <h4 className="font-semibold text-blue-500">2024</h4>
+            <h4 className="font-semibold text-blue-500">Trần Nhật Hoàng</h4>
             <p className="text-sm text-gray-600">
-              Giao diện được nâng cấp, tích hợp tính năng người dùng và bài viết tương tác cao hơn.
+            Xây dựng chức năng và cơ sở dữ liệu
             </p>
           </div>
           <div>
-            <h4 className="font-semibold text-blue-500">2025</h4>
+            <h4 className="font-semibold text-blue-500">Phạm Nguyễn Đình Văn</h4>
             <p className="text-sm text-gray-600">
-              Ra mắt phiên bản cộng đồng mở và mobile app đầu tiên của 4TL Blog.
+                     Xây dựng chức năng và cơ sở dữ liệu
+
             </p>
           </div>
+         
         </div>
       </section>
 

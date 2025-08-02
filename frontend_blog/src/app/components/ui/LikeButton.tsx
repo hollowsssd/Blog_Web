@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { FaHeart, FaRegHeart } from "react-icons/fa";
 import LoginPrompt from "@/app/components/ui/loginPrompt";
+import axios from "axios";
+import { useEffect, useState } from 'react';
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 
 type Props = {
   postId: number;
-  userId?: number; // Make optional
+  userId?: number | null; // Make optional
 };
 
 export default function LikeButton({ postId, userId }: Props) {
@@ -16,25 +17,24 @@ export default function LikeButton({ postId, userId }: Props) {
   const [showPrompt, setShowPrompt] = useState(false);
 
   useEffect(() => {
-    fetch(`http://localhost:8080/likes/count/${postId}`)
-      .then(res => res.json())
-      .then(data => setLikes(data));
+    // Lấy số lượng like
+    axios
+      .get<number>(`http://localhost:8080/likes/count/${postId}`)
+      .then((res) => setLikes(res.data))
+      .catch(() => setLikes(0));
+
 
     if (userId) {
-      fetch(`http://localhost:8080/likes/check?postId=${postId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
-        },
-      })
-        .then(res => {
-          if (!res.ok) throw new Error("Unauthorized");
-          return res.json();
+      axios
+        .get<boolean>(`http://localhost:8080/likes/check?postId=${postId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
+          },
         })
-        .then(data => setLiked(data))
+        .then((res) => setLiked(res.data))
         .catch(() => setLiked(false));
     }
   }, [postId, userId]);
-
 
   const handleLike = async () => {
     if (userId === null) {
@@ -47,24 +47,25 @@ export default function LikeButton({ postId, userId }: Props) {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await fetch(
+      const res = await axios.post(
         `http://localhost:8080/likes/toggle?postId=${postId}`,
+        {},
         {
-          method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
 
-      if (res.ok) {
+      if (res.status === 200) {
         const newLiked = !liked;
         setLiked(newLiked);
         setLikes((prev) => (newLiked ? prev + 1 : prev - 1));
-      } else if (res.status === 401) {
+      }
+    } catch (error: any) {
+      if (error.response?.status === 401) {
         setShowPrompt(true);
       }
-    } catch (error) {
       console.error("Error toggling like:", error);
     }
 
@@ -73,18 +74,30 @@ export default function LikeButton({ postId, userId }: Props) {
 
   return (
     <div className="mb-10">
-      <button
-        onClick={handleLike}
-        disabled={loading}
-        className="flex items-center gap-2 text-red-500 hover:scale-105 transition"
-      >
-        {liked ? <FaHeart /> : <FaRegHeart />}
-        <span className="text-sm">
-          {liked ? "Đã yêu thích" : "Yêu thích"}
-        </span>
-      </button>
-      <span className="text-sm text-gray-600">{likes} lượt yêu thích</span>
-      {showPrompt && <LoginPrompt onClose={() => setShowPrompt(false)} />}
+      {userId ? (
+        <>
+          <button
+            onClick={handleLike}
+            disabled={loading}
+            className="flex items-center gap-2 text-red-500 hover:scale-105 transition"
+          >
+            {liked ? <FaHeart /> : <FaRegHeart />}
+            <span className="text-sm">
+              {liked ? "Đã yêu thích" : "Yêu thích"}
+            </span>
+          </button>
+          <span className="text-sm text-gray-600">{likes} lượt yêu thích</span>
+          {showPrompt && <LoginPrompt onClose={() => setShowPrompt(false)} />}
+        </>
+      ) : (
+        <>
+          <div className="flex items-center gap-2 flex-row-reverse">
+            <span>{likes}</span>
+            <FaHeart className="text-red-500" />
+          </div>
+
+        </>
+      )}
     </div>
   );
 }
