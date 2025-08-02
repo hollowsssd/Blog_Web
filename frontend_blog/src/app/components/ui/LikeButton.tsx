@@ -1,5 +1,10 @@
 'use client';
 
+
+import { useState, useEffect } from 'react';
+import { FaHeart, FaRegHeart } from "react-icons/fa";
+import axios from 'axios';
+
 import LoginPrompt from "@/app/components/ui/loginPrompt";
 import axios from "axios";
 import { useEffect, useState } from 'react';
@@ -16,28 +21,46 @@ export default function LikeButton({ postId, userId }: Props) {
   const [likes, setLikes] = useState(0);
   const [showPrompt, setShowPrompt] = useState(false);
 
+  // Function to extract token from cookies
+  const getTokenFromCookie = () => {
+    const name = "token=";
+    const decodedCookie = decodeURIComponent(document.cookie);
+    const cookies = decodedCookie.split(";");
+    for (let i = 0; i < cookies.length; i++) {
+      let c = cookies[i].trim();
+      if (c.startsWith(name)) {
+        return c.substring(name.length);
+      }
+    }
+    return null;
+  };
+
   useEffect(() => {
-    // Lấy số lượng like
-    axios
-      .get<number>(`http://localhost:8080/likes/count/${postId}`)
-      .then((res) => setLikes(res.data))
-      .catch(() => setLikes(0));
 
+    // Fetch like count
+    axios.get(`http://localhost:8080/likes/count/${postId}`)
+      .then(res => setLikes(res.data))
+      .catch(err => console.error("Failed to fetch like count", err));
 
+    // Check if user liked the post
     if (userId) {
-      axios
-        .get<boolean>(`http://localhost:8080/likes/check?postId=${postId}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
-          },
-        })
-        .then((res) => setLiked(res.data))
+
+      const token = getTokenFromCookie();
+
+      axios.get(`http://localhost:8080/likes/check`, {
+        params: { postId },
+        headers: {
+          Authorization: `Bearer ${token ?? ""}`,
+        },
+      })
+        .then(res => setLiked(res.data)
+     
         .catch(() => setLiked(false));
     }
   }, [postId, userId]);
 
   const handleLike = async () => {
-    if (userId === null) {
+    if (!userId) {
       setShowPrompt(true);
       return;
     }
@@ -45,28 +68,29 @@ export default function LikeButton({ postId, userId }: Props) {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem("token");
+      const token = getTokenFromCookie();
 
       const res = await axios.post(
-        `http://localhost:8080/likes/toggle?postId=${postId}`,
+        `http://localhost:8080/likes/toggle`,
         {},
         {
+          params: { postId },
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${token ?? ""}`,
           },
         }
       );
 
-      if (res.status === 200) {
-        const newLiked = !liked;
-        setLiked(newLiked);
-        setLikes((prev) => (newLiked ? prev + 1 : prev - 1));
-      }
+
+      const newLiked = !liked;
+      setLiked(newLiked);
+      setLikes((prev) => (newLiked ? prev + 1 : prev - 1));
     } catch (error: any) {
       if (error.response?.status === 401) {
         setShowPrompt(true);
+      } else {
+        console.error("Error toggling like:", error);
       }
-      console.error("Error toggling like:", error);
     }
 
     setLoading(false);

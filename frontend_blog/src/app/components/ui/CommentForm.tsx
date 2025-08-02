@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import LoginPrompt from "@/app/components/ui/loginPrompt";
 import { jwtDecode } from "jwt-decode";
+import axios from 'axios';
+import CommentItem from './CommentItem';
 
 type Comment = {
   id: number;
@@ -16,7 +18,6 @@ type Comment = {
 
 type Props = {
   postId: number;
-  userId?: number | null;
 };
 
 interface DecodedToken {
@@ -33,31 +34,45 @@ export default function CommentForm({ postId }: Props) {
   const [userId, setUserId] = useState<number | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
 
+  // Extract token from cookies
+  const getTokenFromCookie = () => {
+    const name = "token=";
+    const decodedCookie = decodeURIComponent(document.cookie);
+    const cookies = decodedCookie.split(";");
+    for (let i = 0; i < cookies.length; i++) {
+      let c = cookies[i].trim();
+      if (c.startsWith(name)) {
+        return c.substring(name.length);
+      }
+    }
+    return null;
+  };
+
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = getTokenFromCookie();
     if (token) {
       try {
         const decoded: DecodedToken = jwtDecode(token);
         const currentTime = Date.now() / 1000;
-
         if (decoded.exp > currentTime) {
           setUserId(decoded.id);
         } else {
-          localStorage.removeItem('token');
+          document.cookie = "token=; Max-Age=0; path=/;";
         }
       } catch (err) {
         console.error("Invalid token");
-        localStorage.removeItem('token');
+        document.cookie = "token=; Max-Age=0; path=/;";
       }
     }
   }, []);
 
   useEffect(() => {
     const fetchComments = async () => {
-      const res = await fetch(`http://localhost:8080/comments/post/${postId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setComments(data);
+      try {
+        const res = await axios.get(`http://localhost:8080/comments/post/${postId}`);
+        setComments(res.data);
+      } catch (error) {
+        console.error("Failed to load comments:", error);
       }
     };
     fetchComments();
@@ -66,31 +81,39 @@ export default function CommentForm({ postId }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const trimmed = commentText.trim();
+
     if (!userId) {
       setShowPrompt(true);
       return;
     }
 
-    const res = await fetch('http://localhost:8080/comments', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem("token")}`
-      },
-      body: JSON.stringify({
-        postId,
-        userId,
-        content: commentText,
-      }),
-    });
+    if (trimmed.length === 0) {
+      alert("Bình luận không được để trống.");
+      return;
+    }
 
-    if (res.ok) {
-      const newComment = await res.json();
-      setComments((prev) => [...prev, newComment]);
+    try {
+      const res = await axios.post(
+        'http://localhost:8080/comments',
+        {
+          postId,
+          userId,
+          content: trimmed,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${getTokenFromCookie() ?? ""}`,
+          },
+        }
+      );
+
+      setComments((prev) => [...prev, res.data]);
       setCommentText('');
       setIsDisabled(true);
-      setTimeout(() => setIsDisabled(false), 3000); // 5 seconds
-    } else {
+      setTimeout(() => setIsDisabled(false), 3000);
+    } catch (error) {
+      console.error("Error submitting comment:", error);
       alert("Đã có lỗi xảy ra khi gửi bình luận.");
     }
   };
@@ -105,8 +128,14 @@ export default function CommentForm({ postId }: Props) {
           onChange={(e) => setCommentText(e.target.value)}
           placeholder="Viết bình luận của bạn..."
           rows={3}
+          maxLength={10000} // ✅ Limit to 10,000 characters
           className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring focus:outline-none"
         ></textarea>
+
+        <div className="text-sm text-right text-gray-500 mt-1">
+          {commentText.length}/10000 ký tự
+        </div>
+
         <button
           type="submit"
           disabled={isDisabled}
@@ -120,17 +149,10 @@ export default function CommentForm({ postId }: Props) {
         </button>
       </form>
 
+
       <ul className="space-y-4">
         {comments.map((c) => (
-          <li
-            key={c.id}
-            className="border border-gray-200 bg-gray-50 p-4 rounded-lg shadow-sm"
-          >
-            <div className="text-sm text-gray-700">{c.content}</div>
-            <div className="text-xs text-gray-500 mt-1">
-              {c.user.name} • {new Date(c.createdAt).toLocaleString()}
-            </div>
-          </li>
+          <CommentItem key={c.id} comment={c} />
         ))}
         {comments.length === 0 && (
           <li className="text-gray-500 text-sm italic">
