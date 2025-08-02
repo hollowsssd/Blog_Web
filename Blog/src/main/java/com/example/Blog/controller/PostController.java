@@ -8,10 +8,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,15 +17,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.Blog.model.Posts;
@@ -38,16 +27,21 @@ import com.example.Blog.service.PostService;
 import com.example.Blog.service.TagService;
 import com.example.Blog.service.UsersService;
 
-@RestController // đổi sang RestController để trả JSON
+@RestController
 @RequestMapping("/post")
 public class PostController {
 
     @Autowired
     private PostService postService;
+
     @Autowired
     private UsersService usersService;
+
     @Autowired
     private TagService tagService;
+
+    @Value("${file.upload-dir}")
+    private String uploadDir;
 
     @GetMapping
     public List<Posts> getAllPosts() {
@@ -69,12 +63,8 @@ public class PostController {
         return postService.getPostsByTagId(tagId);
     }
 
-    // add
-    @Value("${file.upload-dir}")
-    private String uploadDir;
-
     @PostMapping("/add")
-    public ResponseEntity<String> createPost(
+    public ResponseEntity<Map<String, Object>> createPost(
             @RequestParam("file") MultipartFile file,
             @RequestParam("content") String content,
             @RequestParam(value = "isPublished", defaultValue = "false") boolean isPublished,
@@ -83,30 +73,35 @@ public class PostController {
             @RequestParam("title") String title,
             @RequestParam(value = "tags", required = false) Set<Integer> tagIds) {
         try {
-            // Lưu file ảnh
+            // Save image
             String filePath = saveImage(file);
 
-            // Lấy user
+            // Fetch user
             Users user = usersService.getUserById(userId);
             if (user == null) {
                 throw new RuntimeException("User not found");
             }
 
-            // Lấy tags nếu có
+            // Fetch tags
             Set<Tags> tags = new HashSet<>(tagService.getTagsByIds(tagIds));
 
-            // Dùng constructor
+            // Create post
             Posts post = new Posts(content, description, filePath, tags, title, user, isPublished);
-            postService.savePost(post);
+            Posts savedPost = postService.savePost(post);
 
-            return ResponseEntity.ok("Post created successfully with image: " + filePath);
+            // Response
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Post created successfully with image: " + filePath);
+            response.put("id", savedPost.getId());
+
+            return ResponseEntity.ok(response);
 
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error uploading image or saving post");
+                    .body(Map.of("error", "Error uploading image or saving post"));
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Error: " + ex.getMessage());
+                    .body(Map.of("error", ex.getMessage()));
         }
     }
 
@@ -122,32 +117,25 @@ public class PostController {
             @RequestParam(value = "tags", required = false) Set<Integer> tagIds) {
 
         try {
-            // Tìm post
             Posts post = postService.getPostById(id)
                     .orElseThrow(() -> new RuntimeException("Post not found"));
 
-            // Lấy user
             Users user = usersService.getUserById(userId);
             if (user == null) {
                 throw new RuntimeException("User not found");
             }
 
-            // Lấy tags nếu có
             Set<Tags> tags = new HashSet<>(tagService.getTagsByIds(tagIds));
 
-            // Nếu có file mới -> xóa file cũ + lưu lại file mới
             String filePath = post.getImageUrl();
             if (file != null && !file.isEmpty()) {
-                // Xóa file cũ nếu tồn tại
                 if (filePath != null) {
                     Path oldFile = Paths.get(uploadDir).resolve(filePath);
                     Files.deleteIfExists(oldFile);
                 }
-                // Lưu file mới
                 filePath = saveImage(file);
             }
 
-            // Update các field
             post.setContent(content);
             post.setDescription(description);
             post.setImageUrl(filePath);
@@ -156,7 +144,6 @@ public class PostController {
             post.setUser(user);
             post.setIsPublished(isPublished);
 
-            // Lưu lại DB
             postService.savePost(post);
 
             return ResponseEntity.ok("Post updated successfully with image: " + filePath);
@@ -176,24 +163,19 @@ public class PostController {
             Files.createDirectories(uploadPath);
         }
 
-        // Lấy phần mở rộng file (jpg, png...)
         String originalName = file.getOriginalFilename();
         String extension = "";
         if (originalName != null && originalName.contains(".")) {
             extension = originalName.substring(originalName.lastIndexOf("."));
         }
 
-        // Hash tên file để tránh trùng
         String hashedName = hashFileName(originalName + System.currentTimeMillis()) + extension;
-
-        // Lưu file
         Path filePath = uploadPath.resolve(hashedName);
         Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-        return hashedName; // Trả về tên file mới
+        return hashedName;
     }
 
-    // // Hàm hash tên file SHA-256
     private String hashFileName(String input) throws NoSuchAlgorithmException {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] hash = digest.digest(input.getBytes());
@@ -220,15 +202,6 @@ public class PostController {
         } catch (MalformedURLException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-    }
-
-    // save
-
-    @PutMapping("edit/{id}")
-    public String editPost(@PathVariable Integer id, @RequestBody String entity) {
-        // TODO: process PUT request
-
-        return entity;
     }
 
     @DeleteMapping("/delete/{id}")

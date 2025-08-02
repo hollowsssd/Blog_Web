@@ -10,7 +10,8 @@ import { Textarea } from "@/app/components/ui/textarea";
 
 import { Button } from "@/app/components/ui/button";
 import Link from "next/link";
-
+import axios from "axios";
+import { useRouter } from "next/navigation";
 
 import Select from "react-select";
 
@@ -23,6 +24,7 @@ export default function CreatePostPage() {
   const [tagOptions, setTagOptions] = useState<{ value: number; label: string }[]>([]);
   const [selectedTags, setSelectedTags] = useState<{ value: number; label: string }[]>([]);
   const [isMounted, setIsMounted] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     setIsMounted(true);
@@ -85,9 +87,8 @@ export default function CreatePostPage() {
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        const res = await fetch("http://localhost:8080/api/tags");
-        const data: Tag[] = await res.json();
-        const options = data.map((tag) => ({
+        const res = await axios.get<Tag[]>("http://localhost:8080/api/tags");
+        const options = res.data.map((tag) => ({
           value: tag.id,
           label: tag.name,
         }));
@@ -98,7 +99,7 @@ export default function CreatePostPage() {
     };
 
     fetchTags();
-}, []);
+  }, []);
 
 
   //Đăng bài viết
@@ -109,33 +110,30 @@ export default function CreatePostPage() {
     formData.append("title", title);
     formData.append("description", description);
     formData.append("content", content);
-
     formData.append("userId", "1"); // Replace with actual user ID
     formData.append("isPublished", "true");
     formData.append("tags", selectedTags.map((tag) => tag.value).join(","));
-
     if (cover) formData.append("file", cover);
 
-    try { formData.forEach((value, key) => {
-                console.log(`${key}: ${value}`);
-              });
-      const response = await fetch("http://localhost:8080/post/add", {
-
-        method: "POST",
-        body: formData,
+    try {
+      const response = await axios.post("http://localhost:8080/post/add", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
-      const result = await response.text();
-
-      if (!response.ok) throw new Error(result);
+      const createdPost = response.data; // Expecting backend to return { id: ... }
 
       alert("✅ Bài viết đã được gửi thành công!");
-      console.log(result);
+
+      // Redirect to post detail page
+      router.push(`/detail/${createdPost.id}`);
     } catch (error) {
       console.error("❌ Lỗi khi gửi bài viết:", error);
       alert("❌ Đã xảy ra lỗi khi gửi bài viết.");
     }
   };
+
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white px-4 py-10">
@@ -218,10 +216,14 @@ export default function CreatePostPage() {
                   options={tagOptions}
                   value={selectedTags}
                   onChange={(selected) => {
-
-
-                    setSelectedTags(selected as { value: number; label: string }[]);
-                    setErrors((prev) => ({ ...prev, tags: "" }));
+                    const selectedArray = selected as { value: number; label: string }[];
+                    if (selectedArray.length <= 3) {
+                      setSelectedTags(selectedArray);
+                      setErrors((prev) => ({ ...prev, tags: "" }));
+                    } else {
+                      // Optional: show error or ignore the extra tag
+                      alert("Bạn chỉ được chọn tối đa 3 chủ đề.");
+                    }
                   }}
                   className="react-select-container"
                   classNamePrefix="react-select"

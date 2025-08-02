@@ -22,7 +22,20 @@ export default function Home() {
   const [showPrompt, setShowPrompt] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const getTokenFromCookie = () => {
+      const name = "token=";
+      const decodedCookie = decodeURIComponent(document.cookie);
+      const cookies = decodedCookie.split(";");
+      for (let i = 0; i < cookies.length; i++) {
+        let c = cookies[i].trim();
+        if (c.startsWith(name)) {
+          return c.substring(name.length);
+        }
+      }
+      return null;
+    };
+
+    const token = getTokenFromCookie();
     if (token) {
       try {
         const decoded: DecodedToken = jwtDecode(token);
@@ -30,14 +43,15 @@ export default function Home() {
         if (decoded.exp > currentTime) {
           setUserId(decoded.id);
         } else {
-          localStorage.removeItem("token");
+          document.cookie = "token=; Max-Age=0; path=/;";
         }
       } catch (err) {
         console.error("Invalid token");
-        localStorage.removeItem("token");
+        document.cookie = "token=; Max-Age=0; path=/;";
       }
     }
   }, []);
+
 
   return (
     <main className="min-h-screen bg-white text-gray-900 px-6 md:px-16 lg:px-32 pb-20">

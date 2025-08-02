@@ -66,7 +66,8 @@ public class JwtService {
     public Integer extractId(String token) {
         Claims claims = extractAllClaims(token);
         return (Integer) claims.get("id");
-      
+    }
+
     public Boolean extractAdmin(String token) {
 
         return extractClaim(token, Claims -> (Boolean) Claims.get("admin"));

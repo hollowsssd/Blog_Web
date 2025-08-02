@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import Footer from "@/app/components/ui/footer";
 import LikeWrapper from "@/app/components/ui/LikeWrapper";
+import axios from "axios";
 
 const heroImages = [
   "/images/hero1.jpg",
@@ -47,11 +48,8 @@ export default function BlogPage() {
   useEffect(() => {
     const fetchTopTags = async () => {
       try {
-        const res = await fetch("http://localhost:8080/api/tags/top");
-        if (res.ok) {
-          const tags = await res.json();
-          setTags(tags); // assuming setTags is a useState hook
-        }
+        const res = await axios.get("http://localhost:8080/api/tags/top");
+        setTags(res.data); // no need to call .json()
       } catch (err) {
         console.error("Failed to fetch tags:", err);
       }
@@ -60,11 +58,12 @@ export default function BlogPage() {
     fetchTopTags();
   }, []);
 
+
   useEffect(() => {
-    fetch("http://localhost:8080/post")
-      .then((res) => res.json())
-      .then((data) => {
-        const formatted = data.map((post: any, index: number) => ({
+    const fetchPosts = async () => {
+      try {
+        const res = await axios.get("http://localhost:8080/post");
+        const formatted = res.data.map((post: any, index: number) => ({
           id: post.id,
           title: post.title,
           description: post.description,
@@ -77,9 +76,14 @@ export default function BlogPage() {
           featured: post.isPublished,
         }));
         setPosts(formatted);
-      })
-      .catch((err) => console.error("Failed to fetch posts", err));
+      } catch (err) {
+        console.error("Failed to fetch posts", err);
+      }
+    };
+
+    fetchPosts();
   }, []);
+
 
     const filteredPosts = posts.filter((post) => {
     const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase());
@@ -158,7 +162,7 @@ export default function BlogPage() {
 
       {/* Categories */}
       <section className="mt-5 text-center">
-        <h3 className="text-xl font-semibold mb-3 text-gray-700">Chủ đề phổ biến</h3>
+        <h3 className="text-2xl font-semibold mb-3 text-gray-700">Chủ đề phổ biến</h3>
         <div className="flex flex-wrap justify-center gap-3">
           {["All", ...tags.map((t: any) => t.name)].map((tagName, index) => (
             <button

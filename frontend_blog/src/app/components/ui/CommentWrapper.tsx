@@ -15,7 +15,21 @@ export default function CommentWrapper({ postId }: { postId: number }) {
   const [userId, setUserId] = useState<number | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const getTokenFromCookie = (): string | null => {
+      const name = "token=";
+      const decodedCookie = decodeURIComponent(document.cookie);
+      const cookies = decodedCookie.split(";");
+      for (let i = 0; i < cookies.length; i++) {
+        let c = cookies[i].trim();
+        if (c.startsWith(name)) {
+          return c.substring(name.length);
+        }
+      }
+      return null;
+    };
+
+    const token = getTokenFromCookie();
+
     if (token) {
       try {
         const decoded: JwtPayload = jwtDecode(token);
@@ -23,11 +37,13 @@ export default function CommentWrapper({ postId }: { postId: number }) {
         if (decoded.exp > currentTime) {
           setUserId(decoded.id);
         } else {
-          localStorage.removeItem("token");
+          document.cookie = "token=; Max-Age=0; path=/;";
+          setUserId(null);
         }
       } catch (err) {
         console.error("Invalid token");
-        localStorage.removeItem("token");
+        document.cookie = "token=; Max-Age=0; path=/;";
+        setUserId(null);
       }
     }
   }, []);

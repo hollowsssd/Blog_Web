@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
-import { FaHeart, FaRegHeart } from "react-icons/fa";
 import LikeButton from "@/app/components/ui/LikeButton";
 
 type JwtPayload = {
@@ -16,25 +15,39 @@ export default function LikeWrapper({ postId }: { postId: number }) {
   const [userId, setUserId] = useState<number | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const getTokenFromCookie = (): string | null => {
+      const name = "token=";
+      const decodedCookie = decodeURIComponent(document.cookie);
+      const cookies = decodedCookie.split(";");
+      for (let i = 0; i < cookies.length; i++) {
+        let c = cookies[i].trim();
+        if (c.startsWith(name)) {
+          return c.substring(name.length);
+        }
+      }
+      return null;
+    };
+
+    const token = getTokenFromCookie();
 
     if (token) {
       try {
-        const decoded: DecodedToken = jwtDecode(token);
+        const decoded: JwtPayload = jwtDecode(token);
         const currentTime = Date.now() / 1000;
         if (decoded.exp > currentTime) {
           setUserId(decoded.id);
         } else {
-          localStorage.removeItem("token");
+          // Clear cookie by expiring it
+          document.cookie = "token=; Max-Age=0; path=/;";
           setUserId(null);
         }
       } catch (e) {
         console.error("Invalid token");
-        localStorage.removeItem("token");
+        document.cookie = "token=; Max-Age=0; path=/;";
         setUserId(null);
       }
     } else {
-      setUserId(null); // Explicitly null if no token
+      setUserId(null);
     }
   }, []);
 
