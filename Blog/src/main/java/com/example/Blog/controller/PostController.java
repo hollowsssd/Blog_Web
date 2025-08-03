@@ -56,8 +56,12 @@ public class PostController {
     private String uploadDir;
 
     @GetMapping
-    public List<Posts> getAllPosts() {
-        return postService.getAllPosts();
+    public List<Posts> getAllPosts(@RequestParam(defaultValue = "latest") String sort) {
+        if (sort.equalsIgnoreCase("top")) {
+            return postService.getPostsSortedByLikes();
+        } else {
+            return postService.getAllPostsSortedByDate();
+        }
     }
 
     @GetMapping("/{id}")

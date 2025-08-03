@@ -19,6 +19,14 @@ public class PostService {
         return postsRepository.findAll();
     }
 
+    public List<Posts> getAllPostsSortedByDate() {
+        return postsRepository.findAllByOrderByCreatedAtDesc();
+    }
+
+    public List<Posts> getPostsSortedByLikes() {
+        return postsRepository.findAllWithLikeCountSorted();
+    }
+
     public Optional<Posts> getPostById(Integer id) {
         return postsRepository.findById(id);
     }
@@ -31,7 +39,6 @@ public class PostService {
     public List<Posts> getPostsByTagId(Integer tagId) {
         return postsRepository.findByTags_Id(tagId);
     }
-
 
     public Posts savePost(Posts post) {
         return postsRepository.save(post);

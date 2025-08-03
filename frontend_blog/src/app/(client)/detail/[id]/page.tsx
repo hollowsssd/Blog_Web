@@ -4,6 +4,7 @@ import Footer from "@/app/components/ui/footer";
 import Header from "@/app/components/ui/header";
 import LikeWrapper from "@/app/components/ui/LikeWrapper";
 import CommentWrapper from "@/app/components/ui/CommentWrapper";
+import Link from "next/link"; // ensure this is imported
 
 type Params = {
   params: { id: string };
@@ -26,17 +27,6 @@ type Post = {
   }[];
 };
 
-type Comment = {
-  id: number;
-  content: string;
-  createdAt: string;
-  user: {
-    id: number;
-    name: string;
-  };
-};
-
-
 export default async function PostDetailPage({ params }: Params) {
   //post
   const { id } = params;
@@ -49,20 +39,7 @@ export default async function PostDetailPage({ params }: Params) {
     return <div>Post not found</div>;
   }
 
-  //like
-   const likeRes = await fetch(`http://localhost:8080/likes/count/${id}`, {
-     cache: "no-store",
-   })
-   const likeCount: number = likeRes.ok ? await likeRes.json() : 0;
-
-  //comment
   const post: Post = await res.json();
-
-  const commentRes = await fetch(`http://localhost:8080/comments/post/${id}`, {
-    cache: 'no-store',
-  });
-
-  const comments: Comment[] = commentRes.ok ? await commentRes.json() : [];
 
   return (
     <main className="min-h-screen bg-white text-gray-900 px-6 md:px-16 lg:px-32 pb-20">
@@ -78,12 +55,13 @@ export default async function PostDetailPage({ params }: Params) {
         {/* Tags */}
         <div className="flex flex-wrap gap-2 mb-2">
           {post.tags?.map((tag) => (
-            <span
+            <Link
               key={tag.id}
-              className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded"
+              href={`/article?tag=${encodeURIComponent(tag.name)}`}
+              className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded hover:bg-blue-200 transition"
             >
               {tag.name}
-            </span>
+            </Link>
           ))}
         </div>
 
@@ -96,7 +74,7 @@ export default async function PostDetailPage({ params }: Params) {
             className="rounded-full"
           />
           <span>
-            By {post.user.name} •{" "}
+            {post.user.name} •{" "}
             {new Date(post.createdAt).toLocaleString("vi-VN", {
               day: "2-digit",
               month: "2-digit",

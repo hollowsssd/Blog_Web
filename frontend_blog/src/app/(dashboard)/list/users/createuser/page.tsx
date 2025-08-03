@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Cookies from "universal-cookie";
 
 interface FormData {
   email: string;
@@ -71,7 +72,8 @@ export default function AddUserPage() {
   }
 
   try {
-    const token = localStorage.getItem("token"); // 🟩 THÊM DÒNG NÀY
+    const cookies = new Cookies();
+    const token = cookies.get("token");
 
     if (!token) {
       toast.error("Bạn chưa đăng nhập hoặc token không tồn tại", {

@@ -11,6 +11,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent } from "@/app/components/ui/card";
 import { Input } from "@/app/components/ui/input";
+import Cookies from 'universal-cookie';
 
 interface User {
   id: number;
@@ -29,8 +30,8 @@ export default function AdminUsersPage() {
 
   // Load token 1 lần duy nhất
   useEffect(() => {
-    const storedToken =
-      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const cookies = new Cookies();
+    const storedToken = cookies.get("token");
 
     if (!storedToken) {
       toast.error("Bạn chưa đăng nhập.");

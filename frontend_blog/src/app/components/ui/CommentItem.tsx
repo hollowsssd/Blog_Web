@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 
-// Define the expected shape of a Comment
 type Comment = {
   id: number;
   content: string;
@@ -10,6 +11,7 @@ type Comment = {
   user: {
     id: number;
     name: string;
+    avatarUrl: string;
   };
 };
 
@@ -36,8 +38,19 @@ export default function CommentItem({ comment }: { comment: Comment }) {
           </button>
         )}
       </div>
-      <div className="text-xs text-gray-500 mt-1">
-        {comment.user.name} • {new Date(comment.createdAt).toLocaleString()}
+
+      <div className="text-xs text-gray-500 mt-3 flex items-center gap-2">
+        <Link href={`/profile/${comment.user.id}`} className="flex items-center gap-2 hover:underline">
+          <Image
+            src={`http://localhost:8080/post/images/${comment.user.avatarUrl}`}
+            alt={comment.user.name}
+            width={24}
+            height={24}
+            className="rounded-full object-cover"
+          />
+          <span>{comment.user.name}</span>
+        </Link>
+        <span>• {new Date(comment.createdAt).toLocaleString()}</span>
       </div>
     </li>
   );

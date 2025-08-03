@@ -120,7 +120,11 @@ export default function CommentForm({ postId }: Props) {
 
   return (
     <section>
-      <h2 className="text-xl font-semibold mb-4">Bình luận</h2>
+      <p className="text-xl font-semibold mb-4">
+        {comments.length === 0
+          ? "Chưa có bình luận nào"
+          : `${comments.length} bình luận`}
+      </p>
 
       <form onSubmit={handleSubmit} className="mb-6">
         <textarea
@@ -128,7 +132,7 @@ export default function CommentForm({ postId }: Props) {
           onChange={(e) => setCommentText(e.target.value)}
           placeholder="Viết bình luận của bạn..."
           rows={3}
-          maxLength={10000} // ✅ Limit to 10,000 characters
+          maxLength={10000} // Chỉ được 10000 ký tự
           className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring focus:outline-none"
         ></textarea>
 
