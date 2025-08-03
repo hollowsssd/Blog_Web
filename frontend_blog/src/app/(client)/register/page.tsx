@@ -14,7 +14,7 @@ import "react-toastify/dist/ReactToastify.css";
       email: "",
       password: "",
       admin: false,
-      avatar: null, // dùng null thay vì "null"
+      avatar: "defaultAvatar.png", // avatar mặc định
       banned: false, // dùng boolean thay vì chuỗi
       name: "",
     });

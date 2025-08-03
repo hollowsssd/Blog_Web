@@ -1,15 +1,17 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { FaUpload } from "react-icons/fa";
+import Image from "next/image";
 
-import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
-import axios from "axios";
-import Image from "next/image";
+
+import { Button } from "@/app/components/ui/button";
 import Link from "next/link";
+import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { FaUpload } from "react-icons/fa";
+
 import Select from "react-select";
 
 export default function CreatePostPage() {
@@ -74,7 +76,7 @@ export default function CreatePostPage() {
     return Object.values(newErrors).every((e) => e === "");
   };
 
-  //Tìm các chủ đề (tags)
+  //Tìm các chủ đề
   interface Tag {
     id: number;
     name: string;
@@ -125,8 +127,8 @@ export default function CreatePostPage() {
       // Redirect to post detail page
       router.push(`/detail/${createdPost.id}`);
     } catch (error) {
-      console.error("Lỗi khi gửi bài viết:", error);
-      alert("Đã xảy ra lỗi khi gửi bài viết.");
+      console.error("❌ Lỗi khi gửi bài viết:", error);
+      alert("❌ Đã xảy ra lỗi khi gửi bài viết.");
     }
   };
 
@@ -213,11 +215,13 @@ export default function CreatePostPage() {
                   value={selectedTags}
                   onChange={(selected) => {
                     const selectedArray = selected as { value: number; label: string }[];
-                    if (selectedArray.length <= 3) {
+                    if (selectedArray.length <= 10) {
                       setSelectedTags(selectedArray);
                       setErrors((prev) => ({ ...prev, tags: "" }));
                     } else {
-                      alert("Bạn chỉ được chọn tối đa 3 chủ đề.");
+                      // Optional: show error or ignore the extra tag
+                      alert("Bạn chỉ được chọn tối đa 10 chủ đề.");
+
                     }
                   }}
                   className="react-select-container"

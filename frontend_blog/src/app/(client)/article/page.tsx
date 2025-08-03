@@ -1,15 +1,20 @@
 "use client";
 
-import Footer from "@/app/components/ui/footer";
+import Image from "next/image";
+import {
+  FaSearch,
+  FaChevronLeft,
+  FaChevronRight,
+  FaChevronDown,
+} from "react-icons/fa";
 import Header from "@/app/components/ui/header";
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import Footer from "@/app/components/ui/footer";
 import LikeWrapper from "@/app/components/ui/LikeWrapper";
 import axios from "axios";
-import { AnimatePresence, motion } from "framer-motion";
-import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { FaChevronLeft, FaChevronRight, FaSearch } from "react-icons/fa";
-
 
 const heroImages = [
   "/images/hero1.jpg",
@@ -18,74 +23,95 @@ const heroImages = [
   "/images/hero4.png",
 ];
 
+const sortOptions = [
+  { label: "Top Picks", value: "top" },
+  { label: "Mới nhất", value: "latest" },
+];
+
 export default function BlogPage() {
   const [posts, setPosts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
-  const [likedPosts, setLikedPosts] = useState<number[]>([]);
-  const [activeCategory, setActiveCategory] = useState("All");
   const [tags, setTags] = useState([]);
+  const [showSearch, setShowSearch] = useState(false);
+  const [tagSearch, setTagSearch] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState("top");
+  const [showDropdown, setShowDropdown] = useState(false);
 
+  const handlePrev = () => {
+    setCurrentHeroIndex((prev) => (prev - 1 + heroImages.length) % heroImages.length);
+  };
 
-  const toggleLike = (index: number) => {
-    setLikedPosts((prev) =>
-      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
-    );
+  const handleNext = () => {
+    setCurrentHeroIndex((prev) => (prev + 1) % heroImages.length);
   };
 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentHeroIndex((prev) => (prev + 1) % heroImages.length);
-    }, 2000);
+    }, 6000);
     return () => clearInterval(interval);
-  }, []);
+  }, [currentHeroIndex]);
 
   useEffect(() => {
-    const fetchTopTags = async () => {
+    const fetchTags = async () => {
       try {
-
-        const res = await axios.get("http://localhost:8080/api/tags/top");
-        setTags(res.data); // no need to call .json()
-
+        const res = await axios.get("http://localhost:8080/api/tags");
+        console.log("Loaded tags:", res.data); // Add this
+        setTags(res.data);
       } catch (err) {
         console.error("Failed to fetch tags:", err);
       }
     };
-
-    fetchTopTags();
+    fetchTags();
   }, []);
 
+  const searchParams = useSearchParams();
+  const incomingTag = searchParams.get("tag");
+
+  useEffect(() => {
+    if (incomingTag && !selectedTags.includes(incomingTag)) {
+      setSelectedTags([incomingTag]);
+      setShowSearch(true); // optional
+      setTagSearch("");    // optional
+    }
+  }, [incomingTag]);
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await axios.get("http://localhost:8080/post");
-        const formatted = res.data.map((post: any, index: number) => ({
+        const res = await axios.get(`http://localhost:8080/post?sort=${sortBy}`);
+        const formatted = res.data.map((post: any) => ({
           id: post.id,
           title: post.title,
           description: post.description,
           content: post.content,
-          category: post.tags?.[0]?.name || "Uncategorized",
+          tags: (post.tags || []).slice(0, 10).map((tag: any) => tag.name),
+          userId: post.user?.id,
           author: post.user?.name || "Anonymous",
           date: post.createdAt?.split("T")[0] || "N/A",
           image: `http://localhost:8080/post/images/${post.imageUrl}`,
-          avatar: "/images/avatar.png",
+          avatar: `http://localhost:8080/post/images/${post.user?.avatarUrl}`,
           featured: post.isPublished,
         }));
         setPosts(formatted);
-      } catch (err) {
-        console.error("Failed to fetch posts", err);
-      }
-    };
+        } catch (err) {
+          console.error("Failed to fetch posts", err);
+        }
+      };
 
-    fetchPosts();
-  }, []);
+      fetchPosts();
+  }, [sortBy]);
 
-
-    const filteredPosts = posts.filter((post) => {
+  const filteredPosts = posts.filter((post) => {
     const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = activeCategory === "All" || post.category === activeCategory;
-    return matchesSearch && matchesCategory;
+
+    const matchesTags =
+      selectedTags.length === 0 ||
+      selectedTags.every((tag) => post.tags.includes(tag));
+
+    return matchesSearch && matchesTags;
   });
 
   return (
@@ -114,17 +140,13 @@ export default function BlogPage() {
         </AnimatePresence>
 
         <button
-          onClick={() =>
-            setCurrentHeroIndex((prev) => (prev - 1 + heroImages.length) % heroImages.length)
-          }
+          onClick={handlePrev}
           className="absolute left-4 top-1/2 -translate-y-1/2 z-20 text-white text-2xl p-2 bg-black/40 hover:bg-black/70 rounded-full transition"
         >
           <FaChevronLeft />
         </button>
         <button
-          onClick={() =>
-            setCurrentHeroIndex((prev) => (prev + 1) % heroImages.length)
-          }
+          onClick={handleNext}
           className="absolute right-4 top-1/2 -translate-y-1/2 z-20 text-white text-2xl p-2 bg-black/40 hover:bg-black/70 rounded-full transition"
         >
           <FaChevronRight />
@@ -150,7 +172,7 @@ export default function BlogPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Tìm kiếm bài viết..."
-              className="w-full py-3 px-12 rounded-full shadow-lg border-none focus:ring-2 focus:ring-black focus:outline-none transition-all bg-white/90 text-gray-900 placeholder-gray-600"
+              className="w-full py-3 px-12 rounded-full shadow-lg border-none focus:ring-black focus:outline-none transition-all bg-white/90 text-gray-900 placeholder-gray-600"
             />
             <FaSearch className="absolute top-3.5 left-5 text-gray-500" />
           </motion.div>
@@ -159,31 +181,169 @@ export default function BlogPage() {
 
       {/* Categories */}
       <section className="mt-5 text-center">
-        <h3 className="text-2xl font-semibold mb-3 text-gray-700">Chủ đề phổ biến</h3>
-        <div className="flex flex-wrap justify-center gap-3">
-          {["All", ...tags.map((t: any) => t.name)].map((tagName, index) => (
+        <h3 className="text-2xl font-bold mb-3 text-gray-800 tracking-wide">
+          <span className="bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">
+            Chủ đề phổ biến
+          </span>
+        </h3>
+
+        <div className="flex flex-col items-center gap-6 mt-6">
+
+          {/* Tag Buttons with Fade Animation */}
+          <motion.div
+            className="flex flex-wrap justify-center gap-3"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* "All" Button */}
             <button
-              key={index}
-              onClick={() => setActiveCategory(tagName)}
-              className={`px-4 py-1 text-sm rounded-full transition ${
-                activeCategory === tagName
-                  ? "bg-indigo-600 text-white"
-                  : "bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+              onClick={() => setSelectedTags([])}
+              className={`px-4 py-1 text-sm rounded-full transition-all duration-300 transform ${
+                selectedTags.length === 0
+                  ? "bg-indigo-600 text-white shadow-md scale-105"
+                  : "bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:scale-105"
               }`}
             >
-              {tagName}
+              All
             </button>
-          ))}
+
+            {/* Dynamic Tag Buttons */}
+            {tags
+              .filter((t: any) =>
+                t.name.toLowerCase().includes(tagSearch.toLowerCase())
+              )
+              .slice(0, tagSearch ? tags.length : 10)
+              .map((tag: any, index: number) => {
+                const isSelected = selectedTags.includes(tag.name);
+                const isDisabled = selectedTags.length >= 3 && !isSelected;
+
+                return (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      if (isSelected) {
+                        setSelectedTags((prev) => prev.filter((t) => t !== tag.name));
+                      } else if (!isDisabled) {
+                        setSelectedTags((prev) => [...prev, tag.name]);
+                      }
+                      setTimeout(() => setTagSearch(""), 100);
+                    }}
+                    disabled={isDisabled}
+                    className={`px-4 py-1 text-sm rounded-full transition-all duration-300 transform ${
+                      isSelected
+                        ? "bg-indigo-600 text-white shadow-md scale-105"
+                        : "bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:scale-105"
+                    } ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                  >
+                    {tag.name}
+                  </button>
+                );
+              })}
+          </motion.div>
+
+          {/* Toggle Button + Animated Search */}
+          <div className="flex flex-col items-center relative">
+            <button
+              onClick={() => setShowSearch((prev) => !prev)}
+              className="text-sm text-indigo-600 mb-2"
+            >
+              Tìm thêm chủ đề
+            </button>
+
+            {/* Reserved space with animation */}
+            <div style={{ minHeight: 40 }} className="w-full flex justify-center">
+              <AnimatePresence>
+                {showSearch && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                    className="relative w-full max-w-xl bg-white rounded-full px-5 py-2 pl-12 flex items-center gap-2 shadow-sm border border-gray-200"
+                  >
+                    {/* Search Icon */}
+                    <FaSearch className="absolute top-2.5 left-5 text-gray-500" />
+
+                    {/* Tag List + Input */}
+                    <div className="flex flex-wrap items-center gap-2 flex-1">
+                      {selectedTags.map((tag, idx) => (
+                        <span
+                          key={idx}
+                          className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full flex items-center gap-1 text-sm"
+                        >
+                          {tag}
+                          <button
+                            onClick={() =>
+                              setSelectedTags((prev) => prev.filter((t) => t !== tag))
+                            }
+                            className="text-indigo-500 hover:text-red-500"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+
+                      {/* Input */}
+                      <input
+                        type="text"
+                        placeholder="Tìm chủ đề..."
+                        value={tagSearch}
+                        onChange={(e) => setTagSearch(e.target.value)}
+                        className="flex-1 min-w-[120px] border-none focus:outline-none bg-transparent text-sm bg-white/90 text-gray-900 placeholder-gray-600"
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Featured Posts */}
+      {/* Featured Posts and Sorts */}
       <section className="px-6 md:px-12 lg:px-24 py-12">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-bold text-gray-800">Bài viết </h2>
-          <span className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full">
-            Top Picks
-          </span>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-3xl font-bold text-gray-800">Các bài viết</h2>
+
+          {/* Dropdown wrapper */}
+          <div className="relative">
+            <button
+              onClick={() => setShowDropdown((prev) => !prev)}
+              className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-4 py-1.5 rounded-full flex items-center gap-2 shadow-sm transition hover:bg-yellow-200"
+            >
+              {sortOptions.find((o) => o.value === sortBy)?.label}
+              <FaChevronDown className="text-[10px] mt-0.5" />
+            </button>
+
+            <AnimatePresence>
+              {showDropdown && (
+                <motion.ul
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -5 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute top-full right-0 mt-2 w-36 bg-white border border-gray-200 rounded-md shadow-lg z-10"
+                >
+                  {sortOptions.map((option) => (
+                    <li key={option.value}>
+                      <button
+                        onClick={() => {
+                          setSortBy(option.value);
+                          setShowDropdown(false);
+                        }}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-yellow-50 ${
+                          sortBy === option.value ? "font-semibold text-yellow-700" : "text-gray-700"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    </li>
+                  ))}
+                </motion.ul>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         {filteredPosts.length === 0 ? (
@@ -207,10 +367,26 @@ export default function BlogPage() {
                     className="w-full h-64 object-cover"
                   />
                   <div className="p-6">
-                    <div className="text-sm font-medium text-indigo-600 mb-2 flex items-center justify-between">
-                      <span>{post.category}</span>
-                      <LikeWrapper postId={post.id} />
+                    <div className="flex justify-between items-start mb-2">
+                      {/* Left: Tags */}
+                      <div className="flex flex-wrap gap-2 max-w-[80%]">
+                        {post.tags.map((tag: string, idx: number) => (
+                          <Link
+                            key={idx}
+                            href={`/article?tag=${encodeURIComponent(tag)}`}
+                            className="bg-indigo-100 px-2 py-0.5 rounded-full hover:bg-indigo-200 transition text-sm text-indigo-600 font-medium"
+                          >
+                            {tag}
+                          </Link>
+                        ))}
+                      </div>
+
+                      {/* Right: Like Button */}
+                      <div className="flex-shrink-0 ml-4">
+                        <LikeWrapper postId={post.id} />
+                      </div>
                     </div>
+
                     <h3 className="text-xl font-semibold text-gray-900 mb-3">
                       {post.title}
                     </h3>
@@ -219,16 +395,17 @@ export default function BlogPage() {
                     </p>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <Image
-                          src={post.avatar}
-                          alt={post.author}
-                          width={30}
-                          height={30}
-                          className="rounded-full"
-                        />
-                        <span className="text-sm text-gray-500">
-                          {post.author} • {post.date}
-                        </span>
+                        <Link href={`/profile/${post.userId}`} className="flex items-center gap-2 hover:underline">
+                          <Image
+                            src={post.avatar}
+                            alt={post.author}
+                            width={30}
+                            height={30}
+                            className="rounded-full"
+                          />
+                          <span className="text-sm text-gray-500">{post.author}</span>
+                        </Link>
+                        <span className="text-sm text-gray-400">• {post.date}</span>
                       </div>
                       <Link href={`/detail/${post.id}`}>
                         <button className="text-blue-500 hover:underline">Đọc thêm</button>

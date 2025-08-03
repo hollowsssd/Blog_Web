@@ -24,19 +24,21 @@ export default function LoginPage() {
 
   //  Kiểm tra nếu đã đăng nhập + token còn hạn
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const cookies = new Cookies();
+    const token = cookies.get("token");
+
     if (token) {
       try {
         const decoded = jwtDecode<DecodedToken>(token);
         const now = Date.now();
 
         if (decoded.exp * 1000 < now) {
-          localStorage.removeItem("token");
+          cookies.remove("token", { path: "/" });
           return;
         }
 
         if (decoded.banned) {
-          localStorage.removeItem("token");
+          cookies.remove("token", { path: "/" });
           return;
         }
 
@@ -46,7 +48,7 @@ export default function LoginPage() {
           router.push("/");
         }
       } catch (err) {
-        localStorage.removeItem("token");
+        cookies.remove("token", { path: "/" });
       }
     }
   }, [router]);
@@ -79,8 +81,6 @@ export default function LoginPage() {
         });
         return;
       }
-
-      localStorage.setItem("token", token);
 
       const cookies = new Cookies();
       cookies.set("token", token, {

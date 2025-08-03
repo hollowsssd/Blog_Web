@@ -4,6 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import Cookies from "universal-cookie";
 
 interface DecodedToken {
   id: number;
@@ -22,16 +23,35 @@ export default function Header() {
   const isActive = (path: string) => pathname === path;
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const getTokenFromCookie = () => {
+      const name = "token=";
+      const cookies = document.cookie.split(";");
+      for (let c of cookies) {
+        c = c.trim();
+        if (c.startsWith(name)) {
+          return c.substring(name.length);
+        }
+      }
+      return null;
+    };
+
+    const token = getTokenFromCookie();
+
     if (token) {
       try {
         const decoded: DecodedToken = jwtDecode(token);
         const currentTime = Date.now() / 1000;
 
         if (decoded.exp > currentTime) {
-          setUser({id : decoded.id, name: decoded.name, email: decoded.email, admin:decoded.admin});
+          setUser({
+            id: decoded.id,
+            name: decoded.name,
+            email: decoded.email,
+            admin: decoded.admin,
+          });
         } else {
-          localStorage.removeItem("token");
+          // Token expired, remove cookie
+          document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
           setUser(null);
         }
       } catch (error) {
@@ -41,8 +61,10 @@ export default function Header() {
     }
   }, []);
 
+
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    // Clear token from cookie
+    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
     setUser(null);
     window.location.href = "/";
   };

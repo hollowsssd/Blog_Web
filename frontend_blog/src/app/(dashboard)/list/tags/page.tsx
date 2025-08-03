@@ -3,6 +3,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { FaPlus, FaTrash } from "react-icons/fa";
+import Cookies from "universal-cookie";
 
 interface Category {
   id: number;
@@ -16,7 +17,8 @@ export default function AdminCategoryPage() {
 
   // Lấy token sau khi component mount
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
+    const cookies = new Cookies();
+    const storedToken = cookies.get("token");
     setToken(storedToken);
   }, []);
 

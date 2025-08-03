@@ -13,6 +13,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import Cookies from "universal-cookie";
 
 const UserGrowthChart = () => {
   const [data, setData] = useState<{ name: string; users: number }[]>([]);
@@ -20,7 +21,8 @@ const UserGrowthChart = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const cookies = new Cookies();
+        const token = cookies.get("token");
 
         const res = await axios.get("http://localhost:8080/api/user/chart", {
         headers: {

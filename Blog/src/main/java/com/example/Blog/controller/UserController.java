@@ -25,7 +25,7 @@ import com.example.Blog.service.UsersService;
 
 @RestController
 @RequestMapping("/api/user")
-@CrossOrigin(origins = "*") // 🔁 Cho phép gọi từ frontend khác domain (ví dụ: React/Next.js)
+@CrossOrigin(origins = "*") // Cho phép gọi từ frontend khác domain (ví dụ: React/Next.js)
 public class UserController {
     @Autowired
     private UserRepository userRepository;
@@ -121,7 +121,7 @@ public class UserController {
         }
 
         Users user = optionalUser.get();
-        user.setBanned(true); // 🚫 Ban user
+        user.setBanned(true); // Ban user
         userRepository.save(user);
         return ResponseEntity.ok(Map.of("message", "Đã ban người dùng"));
         
@@ -136,7 +136,7 @@ public class UserController {
         }
 
         Users user = optionalUser.get();
-        user.setBanned(false); // ✅ Mở ban user
+        user.setBanned(false); // Mở ban user
         userRepository.save(user);
         return ResponseEntity.ok(Map.of("message", "Đã mở ban người dùng"));
     }

@@ -52,6 +52,12 @@ export default function Home() {
     }
   }, []);
 
+  const getTagFromTitle = (title: string) => {
+    if (title === "Học Tập & Phát Triển") return "Học tập";
+    if (title === "Công Nghệ Mới") return "Công nghệ";
+    if (title === "Cảm Hứng Cuộc Sống") return "Cuộc sống";
+    return "";
+  };
 
   return (
     <main className="min-h-screen bg-white text-gray-900 px-6 md:px-16 lg:px-32 pb-20">
@@ -139,7 +145,7 @@ export default function Home() {
                 </div>
                 <div className="text-right mt-4">
                   <Link
-                    href="/detail"
+                    href={`/article?tag=${encodeURIComponent(getTagFromTitle(item.title))}`}
                     className="text-xs font-semibold text-blue-600 hover:underline"
                   >
                     Đọc thêm
