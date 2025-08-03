@@ -49,6 +49,8 @@ export default function Header() {
             email: decoded.email,
             admin: decoded.admin,
           });
+
+
         } else {
           // Token expired, remove cookie
           document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
