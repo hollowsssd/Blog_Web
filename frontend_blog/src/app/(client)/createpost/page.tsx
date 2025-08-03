@@ -102,12 +102,11 @@ export default function CreatePostPage() {
   //Đăng bài viết
   const handleSubmit = async () => {
     if (!validate()) return;
-
     const formData = new FormData();
     formData.append("title", title);
     formData.append("description", description);
     formData.append("content", content);
-    formData.append("userId", "1"); // Replace with actual user ID
+    formData.append("userId", "1"); 
     formData.append("isPublished", "true");
     formData.append("tags", selectedTags.map((tag) => tag.value).join(","));
     if (cover) formData.append("file", cover);
@@ -218,7 +217,6 @@ export default function CreatePostPage() {
                       setSelectedTags(selectedArray);
                       setErrors((prev) => ({ ...prev, tags: "" }));
                     } else {
-                      // Optional: show error or ignore the extra tag
                       alert("Bạn chỉ được chọn tối đa 3 chủ đề.");
                     }
                   }}

@@ -27,7 +27,6 @@ public class Posts {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    // Quan hệ 1-nhiều: 1 user có nhiều post
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;

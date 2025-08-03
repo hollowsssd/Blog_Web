@@ -44,7 +44,7 @@ public class UserController {
         return userRepository.getUsersByMonth();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/findUser/{id}")
     public ResponseEntity<?> getUserById(@PathVariable Integer id) {
         if (!usersService.existsById(id)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)

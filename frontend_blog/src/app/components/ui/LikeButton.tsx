@@ -50,8 +50,8 @@ export default function LikeButton({ postId, userId }: Props) {
           Authorization: `Bearer ${token ?? ""}`,
         },
       })
-        // .then(res => setLiked(res.data)
-        // .catch(() => setLiked(false));
+      // .then(res => setLiked(res.data)
+      // .catch(() => setLiked(false));
     }
   }, [postId, userId]);
 
@@ -111,10 +111,12 @@ export default function LikeButton({ postId, userId }: Props) {
         </>
       ) : (
         <>
-          <div className="flex items-center gap-2 flex-row-reverse">
-            <span>{likes}</span>
-            <FaHeart className="text-red-500" />
-          </div>
+          <div className="flex items-center gap-1">
+          <FaHeart className="text-red-500" />
+          <span>{likes}</span>
+        </div>
+
+
 
         </>
       )}

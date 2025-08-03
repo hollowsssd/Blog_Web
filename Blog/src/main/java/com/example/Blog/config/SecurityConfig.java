@@ -27,7 +27,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults()) // Bật CORS
                 .csrf(csrf -> csrf.disable()) // Tắt CSRF (vì dùng JWT)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**","post/user/**", "/post/tag/**","/likes/count/**","/api/tags","/post","/post/images/{filename}","/post/{id}","/api/user/search","/post/images/**","/comments/post/**","api/tags/top")
+                        .requestMatchers("/api/auth/**","/post/user/**", "/post/tag/**","/likes/count/**","/api/tags","/post","/post/images/{filename}","/post/{id}","/api/user/search","/post/images/**","/comments/post/**","/api/tags/top","/api/user/findUser/**")
                         .permitAll() 
                         .anyRequest().authenticated() 
                 )
