@@ -15,4 +15,6 @@ public interface PostRepository extends JpaRepository<Posts, Integer> {
 
     List<Posts> findByTags_Id(Integer tagId);
 
+    // List<Posts> findBy(Integer tagId);
+
 }

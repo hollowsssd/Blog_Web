@@ -1,12 +1,10 @@
 "use client";
 
 
-import { useEffect, useState } from "react";
-import { jwtDecode } from "jwt-decode";
-
 import LikeButton from "@/app/components/ui/LikeButton";
 import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from "react";
+
 
 type JwtPayload = {
   id: number;

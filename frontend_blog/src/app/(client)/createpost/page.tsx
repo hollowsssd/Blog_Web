@@ -1,18 +1,15 @@
 "use client";
 
 
-import Image from "next/image";
-import { useEffect, useState } from "react";
-import { FaUpload } from "react-icons/fa";
-
+import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
-
-import { Button } from "@/app/components/ui/button";
-import Link from "next/link";
 import axios from "axios";
+import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-
+import { useEffect, useState } from "react";
+import { FaUpload } from "react-icons/fa";
 import Select from "react-select";
 
 export default function CreatePostPage() {

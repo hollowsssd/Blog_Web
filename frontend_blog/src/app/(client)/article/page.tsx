@@ -3,23 +3,12 @@
 import Footer from "@/app/components/ui/footer";
 import Header from "@/app/components/ui/header";
 import LikeWrapper from "@/app/components/ui/LikeWrapper";
+import axios from "axios";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import {
-  FaChevronLeft,
-  FaChevronRight,
-  FaSearch
-} from "react-icons/fa";
-
-import Header from "@/app/components/ui/header";
-import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
-import Footer from "@/app/components/ui/footer";
-import LikeWrapper from "@/app/components/ui/LikeWrapper";
-import axios from "axios";
+import { FaChevronLeft, FaChevronRight, FaSearch } from "react-icons/fa";
 
 
 const heroImages = [

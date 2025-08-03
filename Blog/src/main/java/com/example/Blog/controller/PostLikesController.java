@@ -1,10 +1,17 @@
 package com.example.Blog.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.example.Blog.service.JwtService;
 import com.example.Blog.service.PostLikesService;
+
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/likes")
@@ -39,7 +46,7 @@ public class PostLikesController {
             throw new RuntimeException("Missing or invalid Authorization header");
         }
         String token = authHeader.substring(7); // remove "Bearer "
-        return jwtService.extractId(token); // ✅ Use the injected instance here
+        return jwtService.extractId(token); //  Use the injected instance here
     }
 
 

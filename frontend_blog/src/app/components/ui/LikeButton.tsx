@@ -1,14 +1,11 @@
 'use client';
 
 
-import { useState, useEffect } from 'react';
-import { FaHeart, FaRegHeart } from "react-icons/fa";
-import axios from 'axios';
-
 import LoginPrompt from "@/app/components/ui/loginPrompt";
-import axios from "axios";
+import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { FaHeart, FaRegHeart } from "react-icons/fa";
+
 
 type Props = {
   postId: number;
@@ -53,9 +50,8 @@ export default function LikeButton({ postId, userId }: Props) {
           Authorization: `Bearer ${token ?? ""}`,
         },
       })
-        .then(res => setLiked(res.data)
-     
-        .catch(() => setLiked(false));
+        // .then(res => setLiked(res.data)
+        // .catch(() => setLiked(false));
     }
   }, [postId, userId]);
 

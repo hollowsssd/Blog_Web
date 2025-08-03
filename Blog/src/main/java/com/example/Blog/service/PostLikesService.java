@@ -1,13 +1,14 @@
 package com.example.Blog.service;
 
-import com.example.Blog.model.PostLikes;
-import com.example.Blog.model.PostLikesId;
-import com.example.Blog.repository.PostLikesRepository;
-import jakarta.transaction.Transactional;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import com.example.Blog.model.PostLikes;
+import com.example.Blog.repository.PostLikesRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class PostLikesService {

@@ -2,7 +2,11 @@ package com.example.Blog.model;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.JoinColumn;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -29,4 +33,6 @@ public class PostLikes {
         this.userId = userId;
         this.postId = postId;
     }
+
+    
 }
