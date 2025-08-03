@@ -1,5 +1,6 @@
 package com.example.Blog.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,4 +38,9 @@ public class PostLikesService {
     public boolean isLiked(Integer userId, Integer postId) {
         return postLikesRepository.findByUserIdAndPostId(userId, postId).isPresent();
     }
+
+    public List<Object[]> findPostOnPostLike(Integer userId){
+        return postLikesRepository.findByLikePosts(userId);
+    }
+
 }

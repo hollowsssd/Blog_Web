@@ -1,5 +1,10 @@
 package com.example.Blog.controller;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,8 +51,28 @@ public class PostLikesController {
             throw new RuntimeException("Missing or invalid Authorization header");
         }
         String token = authHeader.substring(7); // remove "Bearer "
-        return jwtService.extractId(token); //  Use the injected instance here
+        return jwtService.extractId(token); // Use the injected instance here
     }
 
+    @GetMapping("/findPostLiked/{userId}")
+    public List<Map <String, Object>> getMethodName(@PathVariable Integer userId) {
+        List<Object[]> results = postLikesService.findPostOnPostLike(userId);
+        List<Map <String, Object>> res= new ArrayList<>();
+        for (Object[] row : results) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", row[0]);
+            map.put("content",row[1]);
+            map.put("imageUrl",row[2]);
+            map.put("createdAt",row[3]);
+            map.put("title",row[4]);
+            map.put("description",row[5]);
+            map.put("tags",row[6]);
+            map.put("name",row[7]);
+
+            res.add(map);
+        }
+        return res;
+        
+    }
 
 }

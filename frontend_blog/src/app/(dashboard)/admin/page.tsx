@@ -1,6 +1,5 @@
 "use client";
 import FinanceChart from "@/app/components/ui/FinanceChart";
-// import EventCalendar from "@/app/components/ui/EventCalendar";
 
 
 const AdminPage = () => {

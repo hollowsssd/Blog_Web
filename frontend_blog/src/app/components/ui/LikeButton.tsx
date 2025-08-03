@@ -48,6 +48,7 @@ export default function LikeButton({ postId, userId }: Props) {
           Authorization: `Bearer ${token ?? ""}`,
         },
       })
+
         .then(res => {
           setLiked(res.data === true); // backend should return boolean
         })
@@ -56,6 +57,7 @@ export default function LikeButton({ postId, userId }: Props) {
         });
     } else {
       setLiked(false); // for guests
+
     }
   }, [postId, userId]);
 
@@ -108,8 +110,35 @@ export default function LikeButton({ postId, userId }: Props) {
         </span>
       </button>
       <span className="text-sm text-gray-600">{likes} lượt yêu thích</span>
-
       {showPrompt && <LoginPrompt onClose={() => setShowPrompt(false)} />}
+
+      {userId ? (
+        <>
+          <button
+            onClick={handleLike}
+            disabled={loading}
+            className="flex items-center gap-2 text-red-500 hover:scale-105 transition"
+          >
+            {liked ? <FaHeart /> : <FaRegHeart />}
+            <span className="text-sm">
+              {liked ? "Đã yêu thích" : "Yêu thích"}
+            </span>
+          </button>
+          <span className="text-sm text-gray-600">{likes} lượt yêu thích</span>
+          {showPrompt && <LoginPrompt onClose={() => setShowPrompt(false)} />}
+        </>
+      ) : (
+        <>
+          <div className="flex items-center gap-1">
+          <FaHeart className="text-red-500" />
+          <span>{likes}</span>
+        </div>
+
+
+
+        </>
+      )}
+
     </div>
   );
 
