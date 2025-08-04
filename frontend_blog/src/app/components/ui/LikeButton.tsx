@@ -29,14 +29,14 @@ export default function LikeButton({ postId, userId }: Props) {
 
   useEffect(() => {
     // Lấy số lượt thích
-    axios.get(`http://localhost:8080/likes/count/${postId}`)
+    axios.get(`${process.env.NEXT_PUBLIC_API_HOST}/likes/count/${postId}`)
       .then(res => setLikes(res.data))
       .catch(err => console.error("Failed to fetch like count", err));
 
     // Check user đã like chưa
     if (userId && userId !== -1) {
       const token = getTokenFromCookie();
-      axios.get(`http://localhost:8080/likes/check`, {
+      axios.get(`${process.env.NEXT_PUBLIC_API_HOST}/likes/check`, {
         params: { postId },
         headers: { Authorization: `Bearer ${token ?? ""}` },
       })
@@ -61,7 +61,7 @@ export default function LikeButton({ postId, userId }: Props) {
     try {
       const token = getTokenFromCookie();
       await axios.post(
-        `http://localhost:8080/likes/toggle`,
+        `${process.env.NEXT_PUBLIC_API_HOST}/likes/toggle`,
         {},
         {
           params: { postId },

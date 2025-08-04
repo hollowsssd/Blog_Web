@@ -32,7 +32,7 @@ import "react-toastify/dist/ReactToastify.css";
       e.preventDefault();
       try {
         const res = await axios.post(
-          `http://localhost:8080/api/auth/register`,
+          `${process.env.NEXT_PUBLIC_API_HOST}/api/auth/register`,
           formData,
           {
             headers: {

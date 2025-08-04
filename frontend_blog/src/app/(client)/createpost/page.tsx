@@ -130,7 +130,7 @@ export default function CreatePostPage() {
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        const res = await axios.get<Tag[]>("http://localhost:8080/api/tags");
+        const res = await axios.get<Tag[]>(`${process.env.NEXT_PUBLIC_API_HOST}/api/tags`);
         const options = res.data.map((tag) => ({
           value: tag.id,
           label: tag.name,
@@ -162,7 +162,7 @@ export default function CreatePostPage() {
     if (cover) formData.append("file", cover);
 
     try {
-      const response = await axios.post("http://localhost:8080/post/add", formData, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_HOST}/post/add`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

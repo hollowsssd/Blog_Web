@@ -43,7 +43,7 @@ export default function EditPostPage() {
 
   // Lấy tags
   useEffect(() => {
-    axios.get("http://localhost:8080/api/tags")
+    axios.get(`${process.env.NEXT_PUBLIC_API_HOST}/api/tags`)
       .then(res => {
         setTagOptions(res.data.map((tag: any) => ({
           value: tag.id,
@@ -56,14 +56,14 @@ export default function EditPostPage() {
   // Lấy dữ liệu bài viết để edit
   useEffect(() => {
     if (!id) return;
-    axios.get<Post>(`http://localhost:8080/post/${id}`)
+    axios.get<Post>(`${process.env.NEXT_PUBLIC_API_HOST}/post/${id}`)
       .then(res => {
         const post = res.data;
         setPost(post);
         setTitle(post.title);
         setDescription(post.description);
         setContent(post.content);
-        setPreview(`http://localhost:8080/post/images/${post.imageUrl}`);
+        setPreview(`${process.env.NEXT_PUBLIC_API_HOST}/post/images/${post.imageUrl}`);
         setSelectedTags(post.tags.map(tag => ({ value: tag.id, label: tag.name })));
       })
       .catch(console.error);
@@ -101,7 +101,7 @@ export default function EditPostPage() {
 
     console.log("Data:", Array.from(formData.entries()));
     try {
-      await axios.put(`http://localhost:8080/post/update/${id}`, formData, {
+      await axios.put(`${process.env.NEXT_PUBLIC_API_HOST}/post/update/${id}`, formData, {
         headers: { 
           "Content-Type": "multipart/form-data" ,
           Authorization: `Bearer ${token}`,

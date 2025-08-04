@@ -24,7 +24,7 @@ const UserGrowthChart = () => {
         const cookies = new Cookies();
         const token = cookies.get("token");
 
-        const res = await axios.get("http://localhost:8080/api/user/chart", {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_HOST}/api/user/chart`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

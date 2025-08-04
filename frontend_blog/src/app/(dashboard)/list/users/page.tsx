@@ -50,7 +50,7 @@ export default function AdminUsersPage() {
 
     try {
       const url = keyword
-        ? `${process.env.NEXT_PUBLIC_API_HOST}/api/user/search?keyword=${keyword}`
+        ? `${process.env.NEXT_PUBLIC_API_HOST}/api/user/search?name=${keyword}`
         : `${process.env.NEXT_PUBLIC_API_HOST}/api/user`;
 
       const res = await axios.get(url, {

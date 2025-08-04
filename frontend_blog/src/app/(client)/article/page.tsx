@@ -1,20 +1,20 @@
 "use client";
 
-import Image from "next/image";
-import {
-  FaSearch,
-  FaChevronLeft,
-  FaChevronRight,
-  FaChevronDown,
-} from "react-icons/fa";
-import Header from "@/app/components/ui/header";
-import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
 import Footer from "@/app/components/ui/footer";
+import Header from "@/app/components/ui/header";
 import LikeWrapper from "@/app/components/ui/LikeWrapper";
 import axios from "axios";
+import { AnimatePresence, motion } from "framer-motion";
+import Image from "next/image";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import {
+  FaChevronDown,
+  FaChevronLeft,
+  FaChevronRight,
+  FaSearch,
+} from "react-icons/fa";
 
 const heroImages = [
   "/images/hero1.jpg",
@@ -57,7 +57,7 @@ export default function BlogPage() {
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        const res = await axios.get("http://localhost:8080/api/tags");
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_HOST}/api/tags`);
         console.log("Loaded tags:", res.data); // Add this
         setTags(res.data);
       } catch (err) {
@@ -81,7 +81,7 @@ export default function BlogPage() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await axios.get(`http://localhost:8080/post?sort=${sortBy}`);
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_HOST}/post?sort=${sortBy}`);
         const formatted = res.data.map((post: any) => ({
           id: post.id,
           title: post.title,
@@ -91,8 +91,8 @@ export default function BlogPage() {
           userId: post.user?.id,
           author: post.user?.name || "Anonymous",
           date: post.createdAt?.split("T")[0] || "N/A",
-          image: `http://localhost:8080/post/images/${post.imageUrl}`,
-          avatar: `http://localhost:8080/post/images/${post.user?.avatarUrl}`,
+          image: `${process.env.NEXT_PUBLIC_API_HOST}/post/images/${post.imageUrl}`,
+          avatar: `${process.env.NEXT_PUBLIC_API_HOST}/post/images/${post.user?.avatarUrl}`,
           featured: post.isPublished,
         }));
         setPosts(formatted);

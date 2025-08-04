@@ -19,10 +19,14 @@ public interface PostLikesRepository extends JpaRepository<PostLikes, PostLikesI
     void deleteByUserIdAndPostId(Integer userId, Integer postId);
 
     @Query("""
-                SELECT p.id, p.content, p.imageUrl, p.createdAt, p.title, p.description, p.tags, p.user.name
+                SELECT p.id, p.content, p.imageUrl, p.createdAt, p.title, p.description,
+                       GROUP_CONCAT(t.name), p.user.name
                 FROM Posts p
-                JOIN PostLikes pl on p.id = pl.postId
+                JOIN PostLikes pl ON p.id = pl.postId
+                JOIN p.tags t
                 WHERE pl.userId = :userId
+                GROUP BY p.id
             """)
     List<Object[]> findByLikePosts(Integer userId);
+
 }

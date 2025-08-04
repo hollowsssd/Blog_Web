@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
 
 type Comment = {
   id: number;
@@ -42,7 +42,7 @@ export default function CommentItem({ comment }: { comment: Comment }) {
       <div className="text-xs text-gray-500 mt-3 flex items-center gap-2">
         <Link href={`/profile/${comment.user.id}`} className="flex items-center gap-2 hover:underline">
           <Image
-            src={`http://localhost:8080/post/images/${comment.user.avatarUrl}`}
+            src={`${process.env.NEXT_PUBLIC_API_HOST}/post/images/${comment.user.avatarUrl}`}
             alt={comment.user.name}
             width={24}
             height={24}

@@ -184,7 +184,7 @@ export default function UserProfile() {
     const fetchPosts = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`http://localhost:8080/post/user/${user.id}`);
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_HOST}/post/user/${user.id}`);
         setPosts(res.data);
       } catch (err: any) {
         setError(err.message);
@@ -203,7 +203,7 @@ export default function UserProfile() {
       setLoading(true);
       try {
         const res = await axios.get(
-          `http://localhost:8080/likes/findPostLiked/${user.id}`,
+          `${process.env.NEXT_PUBLIC_API_HOST}/likes/findPostLiked/${user.id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

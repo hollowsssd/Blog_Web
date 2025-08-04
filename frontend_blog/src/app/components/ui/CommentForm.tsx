@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import LoginPrompt from "@/app/components/ui/loginPrompt";
-import { jwtDecode } from "jwt-decode";
 import axios from 'axios';
+import { jwtDecode } from "jwt-decode";
+import { useEffect, useState } from 'react';
 import CommentItem from './CommentItem';
 
 type Comment = {
@@ -69,7 +69,7 @@ export default function CommentForm({ postId }: Props) {
   useEffect(() => {
     const fetchComments = async () => {
       try {
-        const res = await axios.get(`http://localhost:8080/comments/post/${postId}`);
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_HOST}/comments/post/${postId}`);
         setComments(res.data);
       } catch (error) {
         console.error("Failed to load comments:", error);
@@ -95,7 +95,7 @@ export default function CommentForm({ postId }: Props) {
 
     try {
       const res = await axios.post(
-        'http://localhost:8080/comments',
+        '${process.env.NEXT_PUBLIC_API_HOST}/comments',
         {
           postId,
           userId,

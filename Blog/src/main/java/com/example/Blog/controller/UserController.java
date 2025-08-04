@@ -57,7 +57,7 @@ public class UserController {
 
     @PostMapping("/add")
     public ResponseEntity<?> saveUsers(@RequestBody Users user) {
-        System.out.println("Received user: " + user.getEmail());
+        // System.out.println("Received user: " + user.getEmail());
 
         if (usersService.existsByEmail(user.getEmail())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
