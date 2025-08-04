@@ -4,7 +4,6 @@ import { jwtDecode } from "jwt-decode";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import Cookies from "universal-cookie";
 
 interface DecodedToken {
   id: number;
@@ -65,7 +64,6 @@ export default function Header() {
 
 
   const handleLogout = () => {
-    // Clear token from cookie
     document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
     setUser(null);
     window.location.href = "/";

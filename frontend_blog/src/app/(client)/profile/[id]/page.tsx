@@ -61,7 +61,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, isEditable = false, onDelete 
 
           <div>
             <span className="flex gap-3 justify-end text-gray-500 text-sm pt-1">
-              <LikeButton postId={post.id} userId={null} />
+              <LikeButton postId={post.id} userId={-1} />
               <FaCommentDots className="w-4 h-4" />
             </span>
             <div className="flex items-center gap-3">
@@ -118,7 +118,6 @@ export default function UserProfile() {
   const [token, setToken] = useState<string | null>();
   const [who, setWho] = useState<boolean>(true);
 
-  // lấy user từ token hoặc gọi API user
   useEffect(() => {
     const tokenInCookie = document.cookie
       .split("; ")
@@ -128,21 +127,33 @@ export default function UserProfile() {
     setToken(tokenInCookie);
 
     const fetchUser = async () => {
-      if (!tokenInCookie) {
-        setError("Không tìm thấy token");
-        return;
-      }
+      if (tokenInCookie) {
+        try {
+          const decoded: DecodedToken = jwtDecode(tokenInCookie);
+          if (decoded.id === Number(profileId)) {
+            setUser({
+              id: decoded.id,
+              name: decoded.name,
+              email: decoded.sub,
+              createdAt: new Date(decoded.createdAt).toLocaleDateString("vi-VN"),
+            });
+          } else {
+            setWho(false);
+            const res = await axios.get(
+              `${process.env.NEXT_PUBLIC_API_HOST}/api/user/findUser/${profileId}`
+            );
+            setUser({
+              id: res.data.id,
+              name: res.data.name,
+              email: res.data.email,
+              createdAt: new Date(res.data.createdAt).toLocaleDateString("vi-VN"),
+            });
+          }
+        } catch (err) {
 
-      try {
-        const decoded: DecodedToken = jwtDecode(tokenInCookie);
-        if (decoded.id === Number(profileId)) {
-          setUser({
-            id: decoded.id,
-            name: decoded.name,
-            email: decoded.sub,
-            createdAt: new Date(decoded.createdAt).toLocaleDateString("vi-VN"),
-          });
-        } else {
+        }
+      } else {
+        try {
           setWho(false);
           const res = await axios.get(
             `${process.env.NEXT_PUBLIC_API_HOST}/api/user/findUser/${profileId}`
@@ -153,12 +164,15 @@ export default function UserProfile() {
             email: res.data.email,
             createdAt: new Date(res.data.createdAt).toLocaleDateString("vi-VN"),
           });
+        } catch (error) {
+          setError("Không tìm thấy người dùng này");
+          setUser(null);
         }
-      } catch (err) {
-        setError("Không tìm thấy người dùng này");
-        setUser(null);
       }
-    };
+      return;
+    }
+
+
 
     fetchUser();
   }, [profileId]);
@@ -265,17 +279,21 @@ export default function UserProfile() {
                     : "text-blue-600 hover:bg-blue-100"
                     }`}
                 >
-                  📝 Bài viết của bạn
+                  📝 {who ? "Bài viết của bạn" : " Tất cả bài đã viết "}
                 </button>
-                <button
-                  onClick={() => setActiveTab("likedPosts")}
-                  className={`px-5 py-2 rounded-full transition font-medium text-sm ${activeTab === "likedPosts"
-                    ? "bg-red-500 text-white"
-                    : "text-red-500 hover:bg-red-100"
-                    }`}
-                >
-                  ❤️ Đã thích
-                </button>
+                {who ? (<>
+                  <button
+                    onClick={() => setActiveTab("likedPosts")}
+                    className={`px-5 py-2 rounded-full transition font-medium text-sm ${activeTab === "likedPosts"
+                      ? "bg-red-500 text-white"
+                      : "text-red-500 hover:bg-red-100"
+                      }`}
+                  >
+                    ❤️ Đã thích
+                  </button>
+                </>
+                ):(<></>)}
+
               </div>
             </div>
             <AnimatePresence mode="wait">

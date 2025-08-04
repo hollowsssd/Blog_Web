@@ -1,18 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { FaUpload } from "react-icons/fa";
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import { FaUpload } from "react-icons/fa";
 
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 
 import { Button } from "@/app/components/ui/button";
-import Link from "next/link";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import Select from "react-select";
+
+type JwtPayload = {
+  id: number;
+ exp: number;
+};
+
 
 export default function CreatePostPage() {
   const [title, setTitle] = useState("");
@@ -24,6 +31,43 @@ export default function CreatePostPage() {
   const [selectedTags, setSelectedTags] = useState<{ value: number; label: string }[]>([]);
   const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
+  const [userId, setUserId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const getTokenFromCookie = (): string | null => {
+      const name = "token=";
+      const decodedCookie = decodeURIComponent(document.cookie);
+      const cookies = decodedCookie.split(";");
+      for (let i = 0; i < cookies.length; i++) {
+        let c = cookies[i].trim();
+        if (c.startsWith(name)) {
+          return c.substring(name.length);
+        }
+      }
+      return null;
+    };
+
+    const token = getTokenFromCookie();
+
+    if (token) {
+      try {
+        const decoded: JwtPayload = jwtDecode(token);
+        const currentTime = Date.now() / 1000;
+        if (decoded.exp > currentTime) {
+          setUserId(decoded.id);
+        } else {
+          document.cookie = "token=; Max-Age=0; path=/;";
+          setUserId(null);
+        }
+      } catch (e) {
+        console.error("Invalid token");
+        document.cookie = "token=; Max-Age=0; path=/;";
+        setUserId(null);
+      }
+    } else {
+      setUserId(null);
+    }
+  }, []);
 
   useEffect(() => {
     setIsMounted(true);
@@ -104,11 +148,15 @@ export default function CreatePostPage() {
   //Đăng bài viết
   const handleSubmit = async () => {
     if (!validate()) return;
+    if (!userId) {
+      alert("❌ Bạn cần đăng nhập để đăng bài.");
+      return;
+    }
     const formData = new FormData();
     formData.append("title", title);
     formData.append("description", description);
     formData.append("content", content);
-    formData.append("userId", "1"); 
+    formData.append("userId", userId.toString());
     formData.append("isPublished", "true");
     formData.append("tags", selectedTags.map((tag) => tag.value).join(","));
     if (cover) formData.append("file", cover);
@@ -132,6 +180,9 @@ export default function CreatePostPage() {
     }
   };
 
+  if (userId === null && isMounted) {
+    return <div>Page not found</div>;
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white px-4 py-10">

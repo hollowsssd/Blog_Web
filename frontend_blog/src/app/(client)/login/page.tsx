@@ -61,19 +61,11 @@ export default function LoginPage() {
         email,
         password,
       });
-
-
       const token = res.data.Token;
       const user = res.data.user;
-
-
-
       if (!user) {
         throw new Error("Tài khoản chưa được đăng kí");
       }
-
-      const decoded = jwtDecode<DecodedToken>(token);
-
       if (user.banned) {
         toast.error("Tài khoản của bạn đã bị khóa.", {
           position: "top-right",
@@ -81,7 +73,6 @@ export default function LoginPage() {
         });
         return;
       }
-
       const cookies = new Cookies();
       cookies.set("token", token, {
         path: "/",
@@ -89,7 +80,6 @@ export default function LoginPage() {
         httpOnly: false,
         maxAge: 86400,
       });
-      
 
       toast.success("Đăng nhập thành công!", {
         position: "top-right",
@@ -97,24 +87,17 @@ export default function LoginPage() {
       });
 
       setTimeout(() => {
-        decoded.admin === true ? router.push("/admin") : router.push("/");
+        user.admin === true ? router.push("/admin") : router.push("/");
       }, 1000);
     } catch (err: unknown) {
       const error = err as AxiosError<{ message: string }>;
-      const status = error.response?.status;
       const message =
         error.response?.data?.message || "Đã xảy ra lỗi. Vui lòng thử lại.";
-
       setErrorMsg(message);
-
       toast.error(message, {
         position: "top-right",
         autoClose: 3000,
       });
-
-      if (status === 403) {
-        localStorage.removeItem("token");
-      }
     }
   };
 

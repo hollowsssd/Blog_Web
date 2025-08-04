@@ -3,7 +3,7 @@ import axios from 'axios';
 export const getProfile = async (token) => {
   try {
     const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_DOMAIN}/api/auth/extract`,
+      `${process.env.NEXT_PUBLIC_API_HOST}/api/auth/extract`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

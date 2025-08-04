@@ -1,15 +1,13 @@
 'use client';
 
-
 import LoginPrompt from "@/app/components/ui/loginPrompt";
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 
-
 type Props = {
   postId: number;
-  userId?: number | null; // Make optional
+  userId?: number | null;
 };
 
 export default function LikeButton({ postId, userId }: Props) {
@@ -18,75 +16,61 @@ export default function LikeButton({ postId, userId }: Props) {
   const [likes, setLikes] = useState(0);
   const [showPrompt, setShowPrompt] = useState(false);
 
-  // Function to extract token from cookies
   const getTokenFromCookie = () => {
     const name = "token=";
     const decodedCookie = decodeURIComponent(document.cookie);
     const cookies = decodedCookie.split(";");
-    for (let i = 0; i < cookies.length; i++) {
-      let c = cookies[i].trim();
-      if (c.startsWith(name)) {
-        return c.substring(name.length);
-      }
+    for (let c of cookies) {
+      c = c.trim();
+      if (c.startsWith(name)) return c.substring(name.length);
     }
     return null;
   };
 
   useEffect(() => {
-    // Fetch like count
+    // Lấy số lượt thích
     axios.get(`http://localhost:8080/likes/count/${postId}`)
       .then(res => setLikes(res.data))
       .catch(err => console.error("Failed to fetch like count", err));
 
-    // Check if user liked the post
-    if (userId) {
+    // Check user đã like chưa
+    if (userId && userId !== -1) {
       const token = getTokenFromCookie();
-
       axios.get(`http://localhost:8080/likes/check`, {
         params: { postId },
-        headers: {
-          Authorization: `Bearer ${token ?? ""}`,
-        },
+        headers: { Authorization: `Bearer ${token ?? ""}` },
       })
-
-        .then(res => {
-          setLiked(res.data === true); // backend should return boolean
-        })
-        .catch(() => {
-          setLiked(false);
-        });
+        .then(res => setLiked(res.data === true))
+        .catch(() => setLiked(false));
     } else {
-      setLiked(false); // for guests
-
+      setLiked(false);
     }
   }, [postId, userId]);
 
-
   const handleLike = async () => {
+    // userId = null => popup login
     if (!userId) {
       setShowPrompt(true);
       return;
     }
 
-    setLoading(true);
+    // userId = -1 thì không cho bấm
+    if (userId === -1) return;
 
+    setLoading(true);
     try {
       const token = getTokenFromCookie();
-
-      const res = await axios.post(
+      await axios.post(
         `http://localhost:8080/likes/toggle`,
         {},
         {
           params: { postId },
-          headers: {
-            Authorization: `Bearer ${token ?? ""}`,
-          },
+          headers: { Authorization: `Bearer ${token ?? ""}` },
         }
       );
 
-      const newLiked = !liked;
-      setLiked(newLiked);
-      setLikes((prev) => (newLiked ? prev + 1 : prev - 1));
+      setLiked(prev => !prev);
+      setLikes(prev => (liked ? prev - 1 : prev + 1));
     } catch (error: any) {
       if (error.response?.status === 401) {
         setShowPrompt(true);
@@ -98,48 +82,26 @@ export default function LikeButton({ postId, userId }: Props) {
   };
 
   return (
-    <div className="mb-10">
-      <button
-        onClick={handleLike}
-        disabled={loading}
-        className="flex items-center gap-2 text-red-500 hover:scale-105 transition"
-      >
-        {liked ? <FaHeart /> : <FaRegHeart />}
-        <span className="text-sm">
-          {liked ? "Đã yêu thích" : "Yêu thích"}
-        </span>
-      </button>
-      <span className="text-sm text-gray-600">{likes} lượt yêu thích</span>
-      {showPrompt && <LoginPrompt onClose={() => setShowPrompt(false)} />}
-
-      {userId ? (
-        <>
-          <button
-            onClick={handleLike}
-            disabled={loading}
-            className="flex items-center gap-2 text-red-500 hover:scale-105 transition"
-          >
-            {liked ? <FaHeart /> : <FaRegHeart />}
-            <span className="text-sm">
-              {liked ? "Đã yêu thích" : "Yêu thích"}
-            </span>
-          </button>
-          <span className="text-sm text-gray-600">{likes} lượt yêu thích</span>
-          {showPrompt && <LoginPrompt onClose={() => setShowPrompt(false)} />}
-        </>
-      ) : (
-        <>
-          <div className="flex items-center gap-1">
+    <div className="mb-4 flex items-center gap-3">
+      {userId === -1 ? (
+        <div className="flex items-center gap-1 text-gray-600 text-sm">
           <FaHeart className="text-red-500" />
           <span>{likes}</span>
         </div>
-
-
-
-        </>
+      ) : (
+        <button
+          onClick={handleLike}
+          disabled={loading}
+          className="flex items-center gap-2 text-red-500 hover:scale-105 transition"
+        >
+          {liked ? <FaHeart /> : <FaRegHeart />}
+          <span className="text-sm">
+            {liked ? "Đã yêu thích" : "Yêu thích"}
+          </span>
+          <span className="text-sm">{likes}</span>
+        </button>
       )}
-
+      {showPrompt && <LoginPrompt onClose={() => setShowPrompt(false)} />}
     </div>
   );
-
 }

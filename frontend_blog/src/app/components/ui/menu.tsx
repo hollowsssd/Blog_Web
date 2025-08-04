@@ -7,7 +7,7 @@ export default function Menu() {
   const pathname = usePathname();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
     window.location.href = "/";
   };
 
@@ -62,9 +62,8 @@ export default function Menu() {
               <Link
                 key={item.label}
                 href={item.href}
-                className={`${commonClasses} ${
-                  isActive ? activeClasses : inactiveClasses
-                }`}
+                className={`${commonClasses} ${isActive ? activeClasses : inactiveClasses
+                  }`}
               >
                 <Image
                   src={item.icon}
