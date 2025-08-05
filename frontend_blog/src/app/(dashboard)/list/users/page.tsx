@@ -1,7 +1,7 @@
 "use client";
 
 import axios, { AxiosError } from "axios";
-import { Ban, Eye, Pencil, Trash2 } from "lucide-react";
+import { Ban, Pencil, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -194,9 +194,9 @@ export default function AdminUsersPage() {
                   </div>
 
                   <div className="flex justify-between gap-2">
-                    <IconButton title="Xem chi tiết">
+                    {/* <IconButton title="Xem chi tiết">
                       <Eye className="w-4 h-4" />
-                    </IconButton>
+                    </IconButton> */}
                     <Link href={`/list/users/${user.id}`}>
                       <IconButton title="Chỉnh sửa">
                         <Pencil className="w-4 h-4" />

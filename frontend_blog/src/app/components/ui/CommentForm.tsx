@@ -95,7 +95,7 @@ export default function CommentForm({ postId }: Props) {
 
     try {
       const res = await axios.post(
-        '${process.env.NEXT_PUBLIC_API_HOST}/comments',
+        `${process.env.NEXT_PUBLIC_API_HOST}/comments`,
         {
           postId,
           userId,

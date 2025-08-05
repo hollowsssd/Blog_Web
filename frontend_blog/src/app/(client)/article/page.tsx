@@ -397,7 +397,7 @@ export default function BlogPage() {
                       <div className="flex items-center gap-3">
                         <Link href={`/profile/${post.userId}`} className="flex items-center gap-2 hover:underline">
                           <Image
-                            src={post.avatar}
+                            src="images/avatar.png"
                             alt={post.author}
                             width={30}
                             height={30}
