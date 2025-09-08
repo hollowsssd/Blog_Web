@@ -149,7 +149,7 @@ export default function UserProfile() {
               createdAt: new Date(res.data.createdAt).toLocaleDateString("vi-VN"),
             });
           }
-        } catch (err) {
+        } catch {
 
         }
       } else {
@@ -164,7 +164,7 @@ export default function UserProfile() {
             email: res.data.email,
             createdAt: new Date(res.data.createdAt).toLocaleDateString("vi-VN"),
           });
-        } catch (error) {
+        } catch {
           setError("Không tìm thấy người dùng này");
           setUser(null);
         }
@@ -186,8 +186,8 @@ export default function UserProfile() {
       try {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_HOST}/post/user/${user.id}`);
         setPosts(res.data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+          setError(err instanceof Error ? err.message : 'Có lỗi xảy ra');
       } finally {
         setLoading(false);
       }
@@ -211,8 +211,8 @@ export default function UserProfile() {
           }
         );
         setPostsLike(res.data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+          setError(err instanceof Error ? err.message : 'Có lỗi xảy ra');
       } finally {
         setLoading(false);
       }
@@ -229,8 +229,8 @@ export default function UserProfile() {
           },
         });
         setPosts((prev) => prev.filter((p) => p.id !== id));
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+          setError(err instanceof Error ? err.message : 'Có lỗi xảy ra');
       }
     }
   };

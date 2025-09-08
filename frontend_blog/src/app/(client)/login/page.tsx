@@ -2,6 +2,7 @@
 
 import axios, { AxiosError } from "axios";
 import { jwtDecode } from "jwt-decode";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -11,7 +12,7 @@ import Cookies from "universal-cookie";
 
 interface DecodedToken {
   email: string;
-  admin: Boolean;
+  admin: boolean; // Sửa từ Boolean thành boolean
   banned: boolean;
   exp: number;
 }
@@ -20,7 +21,8 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMsg, setErrorMsg] = useState("");
+  // Xóa errorMsg vì không sử dụng
+  // const [errorMsg, setErrorMsg] = useState("");
 
   //  Kiểm tra nếu đã đăng nhập + token còn hạn
   useEffect(() => {
@@ -47,7 +49,8 @@ export default function LoginPage() {
         } else {
           router.push("/");
         }
-      } catch (err) {
+      } catch {
+        // Xóa parameter err vì không sử dụng
         cookies.remove("token", { path: "/" });
       }
     }
@@ -93,7 +96,6 @@ export default function LoginPage() {
       const error = err as AxiosError<{ message: string }>;
       const message =
         error.response?.data?.message || "Đã xảy ra lỗi. Vui lòng thử lại.";
-      setErrorMsg(message);
       toast.error(message, {
         position: "top-right",
         autoClose: 3000,
@@ -109,11 +111,15 @@ export default function LoginPage() {
           <h2 className="text-3xl font-bold text-blue-600 mb-4">
             Blog nhỏ <span className="text-blue-900">Ý tưởng lớn.</span>
           </h2>
-          <img
+          {/* Thay thế img bằng Image từ next/image */}
+          <Image
             src="https://illustrations.popsy.co/white/customer-support.svg"
             alt="Support illustration"
+            width={400}
+            height={300}
             className="w-4/5 max-w-md"
             draggable={false}
+            priority
           />
         </div>
 
@@ -163,13 +169,6 @@ export default function LoginPage() {
                   className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
                   required
                 />
-              </div>
-
-            
-
-              <div className="flex items-center justify-between text-sm text-gray-600">
-            
-                
               </div>
 
               <button

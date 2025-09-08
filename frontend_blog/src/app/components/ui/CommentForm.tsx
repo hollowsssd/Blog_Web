@@ -1,8 +1,8 @@
 'use client';
 
+import useAuth from "@/app/components/Hooks/useAuth";
 import LoginPrompt from "@/app/components/ui/loginPrompt";
 import axios from 'axios';
-import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from 'react';
 import CommentItem from './CommentItem';
 
@@ -13,6 +13,7 @@ type Comment = {
   user: {
     id: number;
     name: string;
+    avatarUrl: string;
   };
 };
 
@@ -20,51 +21,14 @@ type Props = {
   postId: number;
 };
 
-interface DecodedToken {
-  id: number;
-  name: string;
-  email: string;
-  exp: number;
-}
-
 export default function CommentForm({ postId }: Props) {
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState<Comment[]>([]);
   const [isDisabled, setIsDisabled] = useState(false);
-  const [userId, setUserId] = useState<number | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
 
-  // Extract token from cookies
-  const getTokenFromCookie = () => {
-    const name = "token=";
-    const decodedCookie = decodeURIComponent(document.cookie);
-    const cookies = decodedCookie.split(";");
-    for (let i = 0; i < cookies.length; i++) {
-      let c = cookies[i].trim();
-      if (c.startsWith(name)) {
-        return c.substring(name.length);
-      }
-    }
-    return null;
-  };
-
-  useEffect(() => {
-    const token = getTokenFromCookie();
-    if (token) {
-      try {
-        const decoded: DecodedToken = jwtDecode(token);
-        const currentTime = Date.now() / 1000;
-        if (decoded.exp > currentTime) {
-          setUserId(decoded.id);
-        } else {
-          document.cookie = "token=; Max-Age=0; path=/;";
-        }
-      } catch (err) {
-        console.error("Invalid token");
-        document.cookie = "token=; Max-Age=0; path=/;";
-      }
-    }
-  }, []);
+  // Sử dụng custom hook thay vì duplicate logic
+  const { userId, token } = useAuth();
 
   useEffect(() => {
     const fetchComments = async () => {
@@ -103,7 +67,7 @@ export default function CommentForm({ postId }: Props) {
         },
         {
           headers: {
-            Authorization: `Bearer ${getTokenFromCookie() ?? ""}`,
+            Authorization: `Bearer ${token ?? ""}`,
           },
         }
       );
@@ -132,7 +96,7 @@ export default function CommentForm({ postId }: Props) {
           onChange={(e) => setCommentText(e.target.value)}
           placeholder="Viết bình luận của bạn..."
           rows={3}
-          maxLength={10000} // Chỉ được 10000 ký tự
+          maxLength={10000}
           className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring focus:outline-none"
         ></textarea>
 
@@ -143,16 +107,14 @@ export default function CommentForm({ postId }: Props) {
         <button
           type="submit"
           disabled={isDisabled}
-          className={`mt-2 px-4 py-2 rounded-full transition text-white ${
-            isDisabled
+          className={`mt-2 px-4 py-2 rounded-full transition text-white ${isDisabled
               ? 'bg-gray-400 cursor-not-allowed'
               : 'bg-blue-600 hover:bg-blue-700'
-          }`}
+            }`}
         >
           {isDisabled ? "Vui lòng chờ..." : "Gửi bình luận"}
         </button>
       </form>
-
 
       <ul className="space-y-4">
         {comments.map((c) => (

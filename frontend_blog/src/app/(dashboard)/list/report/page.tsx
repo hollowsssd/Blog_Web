@@ -1,7 +1,7 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
-
 interface Report {
   id: string;
   reportedUser: {
@@ -69,7 +69,7 @@ export default function DanhSachBaoCao() {
             className="min-w-[300px] flex-shrink-0 bg-white border border-gray-200 rounded-xl shadow hover:shadow-md transition p-4"
           >
             <div className="flex items-center gap-4 mb-3">
-              <img
+              <Image
                 src={report.reportedUser.avatar}
                 alt="Người bị báo cáo"
                 className="w-14 h-14 rounded-full object-cover"

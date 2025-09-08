@@ -1,6 +1,7 @@
 "use client";
 
 import { jwtDecode } from "jwt-decode";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -9,13 +10,13 @@ interface DecodedToken {
   id: number;
   name: string;
   email: string;
-  admin:boolean;
+  admin: boolean;
   exp: number;
 }
 
 export default function Header() {
   const pathname = usePathname();
-  const [user, setUser] = useState<{ id : number,name: string; email: string ; admin : boolean} | null>(
+  const [user, setUser] = useState<{ id: number, name: string; email: string; admin: boolean } | null>(
     null
   );
 
@@ -118,7 +119,7 @@ export default function Header() {
                 className="btn btn-ghost btn-circle avatar"
               >
                 <div className="w-10 rounded-full">
-                  <img alt="User Avatar" src="/images/avatar.png" />
+                  <Image alt="User Avatar" src="/images/avatar.png" />
                 </div>
               </div>
               <ul
@@ -126,7 +127,7 @@ export default function Header() {
                 className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
               >
                 {user.admin == true && <li><div>
-                  <img src="/images/dashboard.png" width={19} height={19} />
+                  <Image src="/images/dashboard.png" width={19} height={19} alt="dashboard" />
                   <Link href={"/admin"}>
                     Dashboard
                   </Link>
@@ -134,7 +135,7 @@ export default function Header() {
                 </li>}
                 <li>
                   <div>
-                    <img src="/images/prf.jpg" width={19} height={19} />
+                    <Image src="/images/prf.jpg" width={19} height={19} alt="prf" />
                     <a className="justify-between" href={`/profile/${user.id}`}>
                       Hồ sơ
                     </a>
@@ -142,7 +143,7 @@ export default function Header() {
                 </li>
                 <li>
                   <div>
-                    <img src="/images/logout.png" width={19} height={19} />
+                    <Image src="/images/logout.png" width={19} height={19} alt="logout" />
                     <a onClick={handleLogout}>Logout</a>
                   </div>
                 </li>

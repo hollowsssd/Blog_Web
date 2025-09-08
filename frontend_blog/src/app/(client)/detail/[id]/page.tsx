@@ -4,13 +4,13 @@ import Footer from "@/app/components/ui/footer";
 import Header from "@/app/components/ui/header";
 import LikeWrapper from "@/app/components/ui/LikeWrapper";
 
-import axios from "axios"; // ✅ Thêm dòng này
+import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 
 type Params = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 type Post = {
@@ -31,7 +31,7 @@ type Post = {
 };
 
 export default async function PostDetailPage({ params }: Params) {
-  const { id } = params;
+  const { id } = await params;
 
   let post: Post;
 

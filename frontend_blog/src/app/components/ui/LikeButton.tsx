@@ -71,8 +71,8 @@ export default function LikeButton({ postId, userId }: Props) {
 
       setLiked(prev => !prev);
       setLikes(prev => (liked ? prev - 1 : prev + 1));
-    } catch (error: any) {
-      if (error.response?.status === 401) {
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
         setShowPrompt(true);
       } else {
         console.error("Error toggling like:", error);

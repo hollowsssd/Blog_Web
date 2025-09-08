@@ -7,7 +7,6 @@ import axios from "axios";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   FaChevronDown,
@@ -28,11 +27,55 @@ const sortOptions = [
   { label: "Mới nhất", value: "latest" },
 ];
 
+// Define API response types
+interface ApiUser {
+  id: number;
+  name?: string;
+  avatarUrl?: string;
+}
+
+interface ApiTag {
+  name: string;
+}
+
+interface ApiPost {
+  id: number;
+  title: string;
+  description: string;
+  content: string;
+  tags?: ApiTag[];
+  user?: ApiUser;
+  createdAt?: string;
+  imageUrl: string;
+  isPublished: boolean;
+}
+
+// Define types
+type Post = {
+  id: number;
+  title: string;
+  description: string;
+  content: string;
+  tags: string[];
+  userId: number;
+  author: string;
+  date: string;
+  image: string;
+  avatar: string;
+  featured: boolean;
+};
+
+type Tag = {
+  id: number;
+  name: string;
+};
+
 export default function BlogPage() {
-  const [posts, setPosts] = useState([]);
+  // Add proper types to state
+  const [posts, setPosts] = useState<Post[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
-  const [tags, setTags] = useState([]);
+  const [tags, setTags] = useState<Tag[]>([]);
   const [showSearch, setShowSearch] = useState(false);
   const [tagSearch, setTagSearch] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -57,8 +100,8 @@ export default function BlogPage() {
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_HOST}/api/tags`);
-        console.log("Loaded tags:", res.data); // Add this
+        const res = await axios.get<Tag[]>(`${process.env.NEXT_PUBLIC_API_HOST}/api/tags`);
+        console.log("Loaded tags:", res.data);
         setTags(res.data);
       } catch (err) {
         console.error("Failed to fetch tags:", err);
@@ -67,28 +110,33 @@ export default function BlogPage() {
     fetchTags();
   }, []);
 
-  const searchParams = useSearchParams();
-  const incomingTag = searchParams.get("tag");
-
+  const [incomingTag, setIncomingTag] = useState<string | null>(null);
+  useEffect(() => {
+    // Chỉ chạy ở client side
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      setIncomingTag(urlParams.get("tag"));
+    }
+  }, []);
   useEffect(() => {
     if (incomingTag && !selectedTags.includes(incomingTag)) {
       setSelectedTags([incomingTag]);
-      setShowSearch(true); // optional
-      setTagSearch("");    // optional
+      setShowSearch(true);
+      setTagSearch("");
     }
-  }, [incomingTag]);
+  }, [incomingTag, selectedTags]);
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_HOST}/post?sort=${sortBy}`);
-        const formatted = res.data.map((post: any) => ({
+        const formatted: Post[] = res.data.map((post: ApiPost) => ({
           id: post.id,
           title: post.title,
           description: post.description,
           content: post.content,
-          tags: (post.tags || []).slice(0, 10).map((tag: any) => tag.name),
-          userId: post.user?.id,
+          tags: (post.tags || []).slice(0, 10).map((tag: ApiTag) => tag.name),
+          userId: post.user?.id || 0,
           author: post.user?.name || "Anonymous",
           date: post.createdAt?.split("T")[0] || "N/A",
           image: `${process.env.NEXT_PUBLIC_API_HOST}/post/images/${post.imageUrl}`,
@@ -96,14 +144,15 @@ export default function BlogPage() {
           featured: post.isPublished,
         }));
         setPosts(formatted);
-        } catch (err) {
-          console.error("Failed to fetch posts", err);
-        }
-      };
+      } catch (err) {
+        console.error("Failed to fetch posts", err);
+      }
+    };
 
-      fetchPosts();
+    fetchPosts();
   }, [sortBy]);
 
+  // Now this will work without TypeScript errors
   const filteredPosts = posts.filter((post) => {
     const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -188,7 +237,6 @@ export default function BlogPage() {
         </h3>
 
         <div className="flex flex-col items-center gap-6 mt-6">
-
           {/* Tag Buttons with Fade Animation */}
           <motion.div
             className="flex flex-wrap justify-center gap-3"
@@ -199,22 +247,21 @@ export default function BlogPage() {
             {/* "All" Button */}
             <button
               onClick={() => setSelectedTags([])}
-              className={`px-4 py-1 text-sm rounded-full transition-all duration-300 transform ${
-                selectedTags.length === 0
-                  ? "bg-indigo-600 text-white shadow-md scale-105"
-                  : "bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:scale-105"
-              }`}
+              className={`px-4 py-1 text-sm rounded-full transition-all duration-300 transform ${selectedTags.length === 0
+                ? "bg-indigo-600 text-white shadow-md scale-105"
+                : "bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:scale-105"
+                }`}
             >
               All
             </button>
 
             {/* Dynamic Tag Buttons */}
             {tags
-              .filter((t: any) =>
+              .filter((t) =>
                 t.name.toLowerCase().includes(tagSearch.toLowerCase())
               )
               .slice(0, tagSearch ? tags.length : 10)
-              .map((tag: any, index: number) => {
+              .map((tag, index) => {
                 const isSelected = selectedTags.includes(tag.name);
                 const isDisabled = selectedTags.length >= 3 && !isSelected;
 
@@ -230,11 +277,10 @@ export default function BlogPage() {
                       setTimeout(() => setTagSearch(""), 100);
                     }}
                     disabled={isDisabled}
-                    className={`px-4 py-1 text-sm rounded-full transition-all duration-300 transform ${
-                      isSelected
-                        ? "bg-indigo-600 text-white shadow-md scale-105"
-                        : "bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:scale-105"
-                    } ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                    className={`px-4 py-1 text-sm rounded-full transition-all duration-300 transform ${isSelected
+                      ? "bg-indigo-600 text-white shadow-md scale-105"
+                      : "bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:scale-105"
+                      } ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     {tag.name}
                   </button>
@@ -332,9 +378,8 @@ export default function BlogPage() {
                           setSortBy(option.value);
                           setShowDropdown(false);
                         }}
-                        className={`w-full text-left px-4 py-2 text-sm hover:bg-yellow-50 ${
-                          sortBy === option.value ? "font-semibold text-yellow-700" : "text-gray-700"
-                        }`}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-yellow-50 ${sortBy === option.value ? "font-semibold text-yellow-700" : "text-gray-700"
+                          }`}
                       >
                         {option.label}
                       </button>
