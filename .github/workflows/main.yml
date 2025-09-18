@@ -5,7 +5,7 @@
 
   jobs:
     deploy:
-      runs-on: unbuntu-latest
+      runs-on: ubuntu-latest
       steps:
       - name: deploy using ssh
         uses: appleboy/ssh-action@master
@@ -15,7 +15,7 @@
           password: ${{secrets.PASSWORD}}
           port: 22
           script: |
-            cd /home/hoang/BLOG_WEB
+            cd /home/hoang/Blog_Web
             git fetch origin
             git checkout production
             git pull 
@@ -26,8 +26,9 @@
             docker run -d --name blog_frontend_container -p 4000:3000 blog_frontend
             cd ..
             cd /Blog
-            mvn clean package -P dev
-            docker build -t blog_backend .
+            mvn clean package -P dev 
+            docker build -t blog_backend .-DskipTests
             docker stop blog_backend_container || true
             docker rm blog_backend_container || true
-            docker run -d --name blog_backend_container -p 8080:8080 -e PASSWORD_MYSQL="${{secrets.PASSWORD_MYSQL}}" -e jwt.key="${{secrets.JWT_KEY}}" blog_backend
+            docker run -d --name blog_backend_container -p 8080:8080 -e PASSWORD_MYSQL="${{secrets.PASSWORD_MYSQL}}" -e jwt_key="${{secrets.JWT_KEY}}" blog_backend
+            
