@@ -19,13 +19,13 @@
             git fetch origin
             git checkout production
             git pull 
-            cd /frontend_blog
+            cd frontend_blog
             docker build -t blog_frontend .
             docker stop blog_frontend_container || true
             docker rm blog_frontend_container || true
             docker run -d --name blog_frontend_container -p 4000:3000 blog_frontend
             cd ..
-            cd /Blog
+            cd Blog
             mvn clean package -P dev -DskipTests
             docker build -t blog_backend .
             docker stop blog_backend_container || true
