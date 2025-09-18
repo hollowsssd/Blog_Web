@@ -26,8 +26,8 @@
             docker run -d --name blog_frontend_container -p 4000:3000 blog_frontend
             cd ..
             cd /Blog
-            mvn clean package -P dev 
-            docker build -t blog_backend .-DskipTests
+            mvn clean package -P dev -DskipTests
+            docker build -t blog_backend .
             docker stop blog_backend_container || true
             docker rm blog_backend_container || true
             docker run -d --name blog_backend_container -p 8080:8080 -e PASSWORD_MYSQL="${{secrets.PASSWORD_MYSQL}}" -e jwt_key="${{secrets.JWT_KEY}}" blog_backend
