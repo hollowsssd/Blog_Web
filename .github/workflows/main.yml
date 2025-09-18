@@ -1,0 +1,33 @@
+  name: Deployment
+  on:
+    push:
+      branches: [production]
+
+  jobs:
+    deploy:
+      runs-on: unbuntu-latest
+      steps:
+      - name: deploy using ssh
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{secrets.HOST}}
+          username: ${{secrets.USERNAME}}
+          password: ${{secrets.PASSWORD}}
+          port: 22
+          script: |
+            cd /home/hoang/BLOG_WEB
+            git fetch origin
+            git checkout production
+            git pull 
+            cd /frontend_blog
+            docker build -t blog_frontend .
+            docker stop blog_frontend_container || true
+            docker rm blog_frontend_container || true
+            docker run -d --name blog_frontend_container -p 4000:3000 blog_frontend
+            cd ..
+            cd /Blog
+            mvn clean package -P dev
+            docker build -t blog_backend .
+            docker stop blog_backend_container || true
+            docker rm blog_backend_container || true
+            docker run -d --name blog_backend_container -p 8080:8080 -e PASSWORD_MYSQL="${{secrets.PASSWORD_MYSQL}}" -e jwt.key="${{secrets.JWT_KEY}}" blog_backend

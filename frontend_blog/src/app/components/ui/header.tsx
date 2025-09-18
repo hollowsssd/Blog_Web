@@ -119,7 +119,7 @@ export default function Header() {
                 className="btn btn-ghost btn-circle avatar"
               >
                 <div className="w-10 rounded-full">
-                  <Image alt="User Avatar" src="/images/avatar.png" />
+                  <Image alt="User Avatar" src="/images/avatar" width={19} height={19}/>
                 </div>
               </div>
               <ul
