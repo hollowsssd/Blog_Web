@@ -1,0 +1,44 @@
+spring:
+    application:
+        name: Blog_web
+    profiles: 
+        active: @spring.profiles.active@
+---
+server:
+    port: 8080
+spring:
+    config:
+        activate:
+            on-profile: dev
+openapi:
+    service:
+        api-docs: api-service
+        service: http://localhost:${server.port}
+        title: API service
+        version: 1.0.0
+---
+server:
+    port: 8081
+spring:
+    config:
+        activate:
+            on-profile: test
+openapi:
+    service:
+        api-docs: api-service
+        service: http://localhost:${server.port}
+        title: API service
+        version: 1.0.0
+---
+server:
+    port: 8082
+spring:
+    config:
+        activate:
+            on-profile: product
+openapi:
+    service:
+        api-docs: api-service
+        service: http://localhost:${server.port}
+        title: API service
+        version: 1.0.0
