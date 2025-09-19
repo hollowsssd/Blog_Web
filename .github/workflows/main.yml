@@ -1,33 +1,77 @@
-  name: Deployment
-  on:
-    push:
-      branches: [production]
+name: Deployment
+on:
+  push:
+    branches: [production]
 
-  jobs:
-    deploy:
-      runs-on: ubuntu-latest
-      steps:
-      - name: deploy using ssh
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build frontend
+        run: |
+          cd frontend_blog
+          echo "NEXT_PUBLIC_API_HOST=${{ secrets.NEXT_PUBLIC_API_HOST }}" > .env
+          npm ci
+          npm run build
+          tar -czf ../frontend.tar.gz .next public package.json node_modules Dockerfile
+
+      - name: Build backend
+        run: |
+          cd Blog
+          mvn clean package -P dev -DskipTests
+          cp target/*.jar app.jar
+          tar -czf ../backend.tar.gz app.jar Dockerfile
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blog-artifacts
+          path: |
+            frontend.tar.gz
+            backend.tar.gz
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: blog-artifacts
+
+      - name: Deploy via SSH
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: 22
+          source: "frontend.tar.gz,backend.tar.gz"
+          target: "/home/hoang/Blog_Web"
+
+      - name: Deploy using SSH
         uses: appleboy/ssh-action@master
         with:
-          host: ${{secrets.HOST}}
-          username: ${{secrets.USERNAME}}
-          password: ${{secrets.PASSWORD}}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
           port: 22
           script: |
             cd /home/hoang/Blog_Web
-            git fetch origin
-            git checkout production
-            git pull 
+
+            rm -rf frontend_blog && mkdir frontend_blog
+            tar -xzf frontend.tar.gz -C frontend_blog
             cd frontend_blog
             docker build -t blog_frontend .
             docker stop blog_frontend_container || true
             docker rm blog_frontend_container || true
             docker run -d --name blog_frontend_container -p 4000:3000 blog_frontend
             cd ..
+
+            rm -rf Blog && mkdir Blog
+            tar -xzf backend.tar.gz -C Blog
             cd Blog
-            mvn clean package -P dev -DskipTests
             docker build -t blog_backend .
             docker stop blog_backend_container || true
             docker rm blog_backend_container || true
-            docker run -d --name blog_backend_container -p 8080:8080 -e PASSWORD_MYSQL="${{secrets.PASSWORD_MYSQL}}" -e jwt_key="${{secrets.JWT_KEY}}" blog_backend
+            docker run -d --name blog_backend_container -p 8080:8080 -e PASSWORD_MYSQL=${{ secrets.PASSWORD_MYSQL }} -e JWT_KEY=${{ secrets.JWT_KEY }} blog_backend
