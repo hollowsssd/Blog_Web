@@ -15,14 +15,14 @@ jobs:
           echo "NEXT_PUBLIC_API_HOST=${{ secrets.NEXT_PUBLIC_API_HOST }}" > .env
           npm ci
           npm run build
-          tar -czf ../frontend.tar.gz .next public package.json node_modules Dockerfile
+          tar -czf ../frontend.tar.gz .next public package.json node_modules dockerfile
 
       - name: Build backend
         run: |
           cd Blog
           mvn clean package -P dev -DskipTests
           cp target/*.jar app.jar
-          tar -czf ../backend.tar.gz app.jar Dockerfile
+          tar -czf ../backend.tar.gz app.jar dockerfile
 
       - uses: actions/upload-artifact@v4
         with:
