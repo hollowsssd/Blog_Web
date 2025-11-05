@@ -12,13 +12,23 @@ import { FaUpload } from "react-icons/fa";
 
 const Select = dynamic(() => import("react-select"), { ssr: false });
 
+type Tag = {
+  id: number;
+  name: string;
+};
+
+type TagOption = {
+  value: number;
+  label: string;
+};
+
 type Post = {
   id: number;
   user: { id: number };
   title: string;
   description: string;
   content: string;
-  tags: { id: number; name: string }[];
+  tags: Tag[];
   imageUrl: string;
 };
 
@@ -32,8 +42,8 @@ export default function EditPostPage() {
   const [content, setContent] = useState("");
   const [cover, setCover] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [tagOptions, setTagOptions] = useState<{ value: number; label: string }[]>([]);
-  const [selectedTags, setSelectedTags] = useState<{ value: number; label: string }[]>([]);
+  const [tagOptions, setTagOptions] = useState<TagOption[]>([]);
+  const [selectedTags, setSelectedTags] = useState<TagOption[]>([]);
   const [errors, setErrors] = useState({
     title: "",
     description: "",
@@ -43,9 +53,9 @@ export default function EditPostPage() {
 
   // Lấy tags
   useEffect(() => {
-    axios.get(`${process.env.NEXT_PUBLIC_API_HOST}/api/tags`)
+    axios.get<Tag[]>(`${process.env.NEXT_PUBLIC_API_HOST}/api/tags`)
       .then(res => {
-        setTagOptions(res.data.map((tag: any) => ({
+        setTagOptions(res.data.map((tag: Tag) => ({
           value: tag.id,
           label: tag.name
         })));
@@ -197,7 +207,7 @@ export default function EditPostPage() {
               isMulti
               options={tagOptions}
               value={selectedTags}
-              onChange={(selected) => setSelectedTags(selected as any)}
+              onChange={(selected) => setSelectedTags(selected as TagOption[])}
               className="react-select-container"
               classNamePrefix="react-select"
               placeholder="🔍 Tìm và chọn chủ đề..."

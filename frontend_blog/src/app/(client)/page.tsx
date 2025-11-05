@@ -1,14 +1,14 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { jwtDecode } from "jwt-decode";
 import { Button } from "@/app/components/ui/button";
 import Footer from "@/app/components/ui/footer";
 import Header from "@/app/components/ui/header";
-import { motion } from "framer-motion";
 import LoginPrompt from "@/app/components/ui/loginPrompt";
+import { motion } from "framer-motion";
+import { jwtDecode } from "jwt-decode";
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
 type DecodedToken = {
   id: number;
@@ -27,7 +27,7 @@ export default function Home() {
       const decodedCookie = decodeURIComponent(document.cookie);
       const cookies = decodedCookie.split(";");
       for (let i = 0; i < cookies.length; i++) {
-        let c = cookies[i].trim();
+        const c = cookies[i].trim();
         if (c.startsWith(name)) {
           return c.substring(name.length);
         }
@@ -45,7 +45,7 @@ export default function Home() {
         } else {
           document.cookie = "token=; Max-Age=0; path=/;";
         }
-      } catch (err) {
+      } catch  {
         console.error("Invalid token");
         document.cookie = "token=; Max-Age=0; path=/;";
       }

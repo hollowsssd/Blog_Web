@@ -38,7 +38,7 @@ export default function CreatePostPage() {
       const decodedCookie = decodeURIComponent(document.cookie);
       const cookies = decodedCookie.split(";");
       for (let i = 0; i < cookies.length; i++) {
-        let c = cookies[i].trim();
+        const c = cookies[i].trim();
         if (c.startsWith(name)) {
           return c.substring(name.length);
         }
@@ -64,7 +64,13 @@ export default function CreatePostPage() {
           document.cookie = "token=; Max-Age=0; path=/;";
           setUserId(null);
         }
+<<<<<<< HEAD
       } else {
+=======
+      } catch {
+        console.error("Invalid token");
+        document.cookie = "token=; Max-Age=0; path=/;";
+>>>>>>> 1504cef63635960bf5b4d4814eb832e48e04c30e
         setUserId(null);
       }
     }, []);

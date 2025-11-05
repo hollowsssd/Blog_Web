@@ -22,7 +22,7 @@ export default function LikeWrapper({ postId }: { postId: number }) {
       const decodedCookie = decodeURIComponent(document.cookie);
       const cookies = decodedCookie.split(";");
       for (let i = 0; i < cookies.length; i++) {
-        let c = cookies[i].trim();
+        const c = cookies[i].trim();
         if (c.startsWith(name)) {
           return c.substring(name.length);
         }
@@ -43,7 +43,7 @@ export default function LikeWrapper({ postId }: { postId: number }) {
           document.cookie = "token=; Max-Age=0; path=/;";
           setUserId(null);
         }
-      } catch (e) {
+      } catch  {
         console.error("Invalid token");
         document.cookie = "token=; Max-Age=0; path=/;";
         setUserId(null);

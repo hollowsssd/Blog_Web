@@ -1,28 +1,47 @@
 'use client';
 
+import useAuth from "@/app/components/Hooks/useAuth";
 import LoginPrompt from "@/app/components/ui/loginPrompt";
+<<<<<<< HEAD
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from "react";
 import CommentItem from "./CommentItem";
+=======
+import axios from 'axios';
+import { useEffect, useState } from 'react';
+import CommentItem from './CommentItem';
+>>>>>>> 1504cef63635960bf5b4d4814eb832e48e04c30e
 
 type Comment = {
   id: number;
   content: string;
   createdAt: string;
+<<<<<<< HEAD
   user: { id: number; name: string };
+=======
+  user: {
+    id: number;
+    name: string;
+    avatarUrl: string;
+  };
+>>>>>>> 1504cef63635960bf5b4d4814eb832e48e04c30e
 };
 
 type Props = { postId: number };
 
+<<<<<<< HEAD
 interface DecodedToken {
   id: number; name: string; email: string; exp: number;
 }
 
+=======
+>>>>>>> 1504cef63635960bf5b4d4814eb832e48e04c30e
 export default function CommentForm({ postId }: Props) {
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState<Comment[]>([]);
   const [isDisabled, setIsDisabled] = useState(false);
+<<<<<<< HEAD
   const [userId, setUserId] = useState<number | null>(null);
 
   const [errorText, setErrorText] = useState<string>("");
@@ -56,6 +75,12 @@ export default function CommentForm({ postId }: Props) {
       document.cookie = "token=; Max-Age=0; path=/;";
     }
   }, []);
+=======
+  const [showPrompt, setShowPrompt] = useState(false);
+
+  // Sử dụng custom hook thay vì duplicate logic
+  const { userId, token } = useAuth();
+>>>>>>> 1504cef63635960bf5b4d4814eb832e48e04c30e
 
   // Tải danh sách bình luận của bài viết
   useEffect(() => {
@@ -118,8 +143,21 @@ export default function CommentForm({ postId }: Props) {
     try {
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_API_HOST}/comments`,
+<<<<<<< HEAD
         { postId, userId, content: trimmed },
         { headers: { Authorization: `Bearer ${token}` } }
+=======
+        {
+          postId,
+          userId,
+          content: trimmed,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token ?? ""}`,
+          },
+        }
+>>>>>>> 1504cef63635960bf5b4d4814eb832e48e04c30e
       );
 
       setComments((prev) => [...prev, res.data]);
@@ -164,9 +202,15 @@ export default function CommentForm({ postId }: Props) {
           }}
           placeholder="Viết bình luận của bạn..."
           rows={3}
+<<<<<<< HEAD
           className={`w-full p-3 border rounded-lg resize-none focus:ring focus:outline-none
             ${errorText ? "border-red-500" : "border-gray-300"}`}
         />
+=======
+          maxLength={10000}
+          className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring focus:outline-none"
+        ></textarea>
+>>>>>>> 1504cef63635960bf5b4d4814eb832e48e04c30e
 
         {/* Lỗi */}
         {errorText && <p className="text-red-500 text-sm mt-1">{errorText}</p>}
@@ -186,17 +230,27 @@ export default function CommentForm({ postId }: Props) {
         <button
           type="submit"
           disabled={isDisabled}
+<<<<<<< HEAD
           className={`mt-2 px-4 py-2 rounded-full transition text-white ${
             isDisabled ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
           }`}
+=======
+          className={`mt-2 px-4 py-2 rounded-full transition text-white ${isDisabled
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-blue-600 hover:bg-blue-700'
+            }`}
+>>>>>>> 1504cef63635960bf5b4d4814eb832e48e04c30e
         >
           {isDisabled ? "Vui lòng chờ..." : "Gửi bình luận"}
         </button>
       </form>
 
+<<<<<<< HEAD
       {/* Gợi ý đăng nhập */}
       {showPrompt && <LoginPrompt onClose={() => setShowPrompt(false)} />}
 
+=======
+>>>>>>> 1504cef63635960bf5b4d4814eb832e48e04c30e
       <ul className="space-y-4">
         {comments.map((c) => (
           <CommentItem key={c.id} comment={c} />

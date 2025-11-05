@@ -82,7 +82,7 @@ export default function AddUserPage() {
       return;
     }
 
-    const res = await axios.post(
+      await axios.post(
       `${process.env.NEXT_PUBLIC_API_HOST}/api/user/add`,
       formData,
       {
