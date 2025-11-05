@@ -36,6 +36,18 @@ public class AuthController {
         String email = payload.get("email");
         String password = payload.get("password");
 
+        if (email == null || email.trim().isEmpty() || password == null || password.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Email, Password không được để trống"));
+        }
+
+        if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Email không hợp lệ."));
+        }
+
+        // Kiểm tra password
+        if (password.length() < 6) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Mật khẩu phải có ít nhất 6 ký tự."));
+        }
         Users user = usersService.findByEmail(email);
         if (user == null || !passwordEncoder.matches(password, user.getPassword())) {
             return ResponseEntity.badRequest().body(Map.of("message", "Email hoặc mật khẩu không đúng!"));
@@ -56,7 +68,8 @@ public class AuthController {
                         "name", user.getName(),
                         "email", user.getEmail(),
                         "admin", user.getAdmin()),
-                "Token", jwtService.generateToken(user.getId(), user.getEmail(), user.getName(), user.getAdmin(),createdAtStr)));
+                "Token", jwtService.generateToken(user.getId(), user.getEmail(), user.getName(), user.getAdmin(),
+                        createdAtStr)));
     }
 
     @PostMapping("/register")
@@ -65,11 +78,29 @@ public class AuthController {
         String email = payload.get("email");
         String password = payload.get("password");
 
+        // Kiểm tra name
+        if (name == null || name.trim().isEmpty() || email == null || email.trim().isEmpty() || password == null
+                || password.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Tên, Email, Password không được để trống"));
+        }
+
+        // Kiểm tra email
+        if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Email không hợp lệ."));
+        }
+
+        // Kiểm tra password
+        if (password.length() < 6) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Mật khẩu phải có ít nhất 6 ký tự."));
+        }
+
+        // Kiểm tra trùng email
         if (usersService.existsByEmail(email)) {
             return ResponseEntity.badRequest().body(Map.of("message", "Email đã được sử dụng."));
         }
 
         Users newUser = usersService.register(name, email, password);
+
         return ResponseEntity.ok(Map.of(
                 "message", "Đăng ký thành công!",
                 "user", Map.of(

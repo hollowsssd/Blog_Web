@@ -101,13 +101,11 @@ import "react-toastify/dist/ReactToastify.css";
                       Email
                     </label>
                     <input
-                      type="email"
                       id="email"
                       placeholder="email@example.com"
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      required
                       className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
                     />
                   </div>
@@ -122,7 +120,6 @@ import "react-toastify/dist/ReactToastify.css";
                       type="text"
                       id="name"
                       placeholder="Tên "
-                      required
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
@@ -140,7 +137,6 @@ import "react-toastify/dist/ReactToastify.css";
                       type="password"
                       id="password"
                       placeholder="••••••••"
-                      required
                       minLength={6} // bắt buộc ít nhất 6 ký tự
                       name="password"
                       value={formData.password}

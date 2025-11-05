@@ -33,8 +33,7 @@ export default function CreatePostPage() {
   const router = useRouter();
   const [userId, setUserId] = useState<number | null>(null);
 
-  useEffect(() => {
-    const getTokenFromCookie = (): string | null => {
+  const getTokenFromCookie = (): string | null => {
       const name = "token=";
       const decodedCookie = decodeURIComponent(document.cookie);
       const cookies = decodedCookie.split(";");
@@ -47,27 +46,28 @@ export default function CreatePostPage() {
       return null;
     };
 
-    const token = getTokenFromCookie();
+  useEffect(() => {
+      const token = getTokenFromCookie();
 
-    if (token) {
-      try {
-        const decoded: JwtPayload = jwtDecode(token);
-        const currentTime = Date.now() / 1000;
-        if (decoded.exp > currentTime) {
-          setUserId(decoded.id);
-        } else {
+      if (token) {
+        try {
+          const decoded: JwtPayload = jwtDecode(token);
+          const currentTime = Date.now() / 1000;
+          if (decoded.exp > currentTime) {
+            setUserId(decoded.id);
+          } else {
+            document.cookie = "token=; Max-Age=0; path=/;";
+            setUserId(null);
+          }
+        } catch (e) {
+          console.error("Invalid token");
           document.cookie = "token=; Max-Age=0; path=/;";
           setUserId(null);
         }
-      } catch (e) {
-        console.error("Invalid token");
-        document.cookie = "token=; Max-Age=0; path=/;";
+      } else {
         setUserId(null);
       }
-    } else {
-      setUserId(null);
-    }
-  }, []);
+    }, []);
 
   useEffect(() => {
     setIsMounted(true);
@@ -162,27 +162,40 @@ export default function CreatePostPage() {
     if (cover) formData.append("file", cover);
 
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_HOST}/post/add`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const token = getTokenFromCookie();
 
-      const createdPost = response.data; // Expecting backend to return { id: ... }
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_HOST}/post/add`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const createdPost = response.data;
 
       alert("✅ Bài viết đã được gửi thành công!");
-
-      // Redirect to post detail page
       router.push(`/detail/${createdPost.id}`);
-    } catch (error) {
-      console.error("❌ Lỗi khi gửi bài viết:", error);
-      alert("❌ Đã xảy ra lỗi khi gửi bài viết.");
+
+    } catch (error: any) {
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        // Xóa token nếu có
+        document.cookie = "token=; Max-Age=0; path=/;";
+        alert("❌ Phiên đăng nhập không hợp lệ hoặc đã hết hạn.");
+        router.push("/"); // Quay về trang chủ
+      } else {
+        console.error("❌ Lỗi khi gửi bài viết:", error);
+        alert("❌ Đã xảy ra lỗi khi gửi bài viết.");
+      }
     }
   };
 
-  if (userId === null && isMounted) {
-    return <div>Page not found</div>;
-  }
+//   if (userId === null && isMounted) {
+//     return <div>Page not found</div>;
+//   }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white px-4 py-10">
